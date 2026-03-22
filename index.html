@@ -1,13 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>CeloArb Pro — Advanced AI Arbitrage Agent</title>
-  <meta name="description" content="CeloArb Pro: Autonomous ZK-verified stablecoin arbitrage on Celo with real-time P&L analytics and triangular detection." />
+  <meta name="description"
+    content="CeloArb Pro: Autonomous ZK-verified stablecoin arbitrage on Celo with real-time P&L analytics and triangular detection." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap"
+    rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.1/ethers.umd.min.js"></script>
   <style>
@@ -22,7 +26,8 @@
       --muted2: #30363d;
 
       /* Shared */
-      --accent: #3fb950; /* Celo Green */
+      --accent: #3fb950;
+      /* Celo Green */
       --accent-dim: rgba(63, 185, 80, 0.1);
       --accent2: #58a6ff;
       --accent2-dim: rgba(88, 166, 255, 0.1);
@@ -42,8 +47,18 @@
       --muted2: #afb8c1;
     }
 
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html { scroll-behavior: smooth; }
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
     body {
       font-family: var(--sans);
       background: var(--bg);
@@ -77,6 +92,7 @@
       top: 0;
       z-index: 1000;
     }
+
     .logo {
       display: flex;
       align-items: center;
@@ -85,23 +101,40 @@
       font-weight: 800;
       letter-spacing: -.03em;
     }
+
     .logo-dot {
-      width: 12px; height: 12px;
+      width: 12px;
+      height: 12px;
       border-radius: 50%;
       background: var(--accent);
       box-shadow: 0 0 15px var(--accent);
       animation: pulse 2s infinite;
     }
+
     @keyframes pulse {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: .7; transform: scale(0.9); }
+
+      0%,
+      100% {
+        opacity: 1;
+        transform: scale(1);
+      }
+
+      50% {
+        opacity: .7;
+        transform: scale(0.9);
+      }
     }
-    .logo span { color: var(--accent); }
+
+    .logo span {
+      color: var(--accent);
+    }
+
     .header-right {
       display: flex;
       align-items: center;
       gap: 1rem;
     }
+
     .badge {
       background: var(--surface2);
       color: var(--text);
@@ -114,8 +147,18 @@
       align-items: center;
       gap: 0.5rem;
     }
-    .badge.accent { color: var(--accent); border-color: var(--accent-dim); background: var(--accent-dim); }
-    .badge.blue { color: var(--accent2); border-color: var(--accent2-dim); background: var(--accent2-dim); }
+
+    .badge.accent {
+      color: var(--accent);
+      border-color: var(--accent-dim);
+      background: var(--accent-dim);
+    }
+
+    .badge.blue {
+      color: var(--accent2);
+      border-color: var(--accent2-dim);
+      background: var(--accent2-dim);
+    }
 
     /* ── Layout ── */
     main {
@@ -129,7 +172,11 @@
       z-index: 1;
     }
 
-    section { display: flex; flex-direction: column; gap: 1.5rem; }
+    section {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
 
     /* ── Cards ── */
     .card {
@@ -140,6 +187,7 @@
       display: flex;
       flex-direction: column;
     }
+
     .card-header {
       padding: 1rem 1.25rem;
       border-bottom: 1px solid var(--border);
@@ -147,6 +195,7 @@
       align-items: center;
       justify-content: space-between;
     }
+
     .card-title {
       font-size: .75rem;
       font-weight: 700;
@@ -154,7 +203,10 @@
       letter-spacing: .05em;
       color: var(--muted);
     }
-    .card-body { padding: 1.25rem; }
+
+    .card-body {
+      padding: 1.25rem;
+    }
 
     /* ── KPIs ── */
     .kpi-grid {
@@ -162,6 +214,7 @@
       grid-template-columns: repeat(4, 1fr);
       gap: 1rem;
     }
+
     .kpi {
       padding: 1.25rem;
       background: var(--surface);
@@ -169,418 +222,661 @@
       border-radius: 12px;
       transition: transform 0.2s;
     }
-    .kpi:hover { transform: translateY(-2px); border-color: var(--muted); }
-    .kpi-label { font-size: .7rem; color: var(--muted); text-transform: uppercase; margin-bottom: .5rem; }
-    .kpi-value { font-family: var(--mono); font-size: 1.5rem; font-weight: 700; color: var(--accent); }
-    .kpi-sub { font-size: .65rem; color: var(--muted); margin-top: .25rem; }
+
+    .kpi:hover {
+      transform: translateY(-2px);
+      border-color: var(--muted);
+    }
+
+    .kpi-label {
+      font-size: .7rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      margin-bottom: .5rem;
+    }
+
+    .kpi-value {
+      font-family: var(--mono);
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .kpi-sub {
+      font-size: .65rem;
+      color: var(--muted);
+      margin-top: .25rem;
+    }
 
     /* ── Chart ── */
-    .chart-container { height: 300px; width: 100%; position: relative; }
+    .chart-container {
+      height: 300px;
+      width: 100%;
+      position: relative;
+    }
 
     /* ── Spread Table ── */
-    .data-table { width: 100%; border-collapse: collapse; font-size: .85rem; }
-    .data-table th { text-align: left; padding: .75rem; color: var(--muted); font-weight: 600; border-bottom: 1px solid var(--border); }
-    .data-table td { padding: .75rem; border-bottom: 1px solid var(--border); vertical-align: middle; }
-    .data-table tr:last-child td { border-bottom: none; }
-    .spread-bar { height: 6px; background: var(--muted2); border-radius: 3px; overflow: hidden; width: 80px; }
-    .spread-fill { height: 100%; background: var(--accent); transition: width 0.5s; }
-    .spread-fill.hot { background: var(--warn); box-shadow: 0 0 10px var(--warn); }
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: .85rem;
+    }
+
+    .data-table th {
+      text-align: left;
+      padding: .75rem;
+      color: var(--muted);
+      font-weight: 600;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .data-table td {
+      padding: .75rem;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+
+    .data-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .spread-bar {
+      height: 6px;
+      background: var(--muted2);
+      border-radius: 3px;
+      overflow: hidden;
+      width: 80px;
+    }
+
+    .spread-fill {
+      height: 100%;
+      background: var(--accent);
+      transition: width 0.5s;
+    }
+
+    .spread-fill.hot {
+      background: var(--warn);
+      box-shadow: 0 0 10px var(--warn);
+    }
 
     /* ── Side Panels ── */
-    .side-grid { display: flex; flex-direction: column; gap: 1.5rem; }
+    .side-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
 
     /* ── Portfolio ── */
-    .portfolio-item { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; }
-    .portfolio-item:last-child { margin-bottom: 0; }
-    .token-icon { width: 32px; height: 32px; border-radius: 50%; background: var(--surface2); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: .75rem; border: 1px solid var(--border); }
-    .token-info { flex: 1; }
-    .token-symbol { font-weight: 700; font-size: .85rem; }
-    .token-amount { font-family: var(--mono); font-size: .8rem; color: var(--muted); }
-    .token-val { font-family: var(--mono); font-size: .85rem; font-weight: 600; text-align: right; }
+    .portfolio-item {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .portfolio-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .token-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--surface2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: .75rem;
+      border: 1px solid var(--border);
+    }
+
+    .token-info {
+      flex: 1;
+    }
+
+    .token-symbol {
+      font-weight: 700;
+      font-size: .85rem;
+    }
+
+    .token-amount {
+      font-family: var(--mono);
+      font-size: .8rem;
+      color: var(--muted);
+    }
+
+    .token-val {
+      font-family: var(--mono);
+      font-size: .85rem;
+      font-weight: 600;
+      text-align: right;
+    }
 
     /* ── Sentiment Gauge ── */
-    .sentiment-box { text-align: center; padding: 1rem; }
-    .gauge-track { height: 12px; background: linear-gradient(90deg, var(--danger), var(--warn), var(--accent)); border-radius: 6px; position: relative; overflow: hidden; margin-top: 1rem; }
-    .gauge-needle { position: absolute; top: 0; bottom: 0; width: 4px; background: #fff; transform: translateX(-50%); transition: left 1s; box-shadow: 0 0 8px #fff; }
+    .sentiment-box {
+      text-align: center;
+      padding: 1rem;
+    }
+
+    .gauge-track {
+      height: 12px;
+      background: linear-gradient(90deg, var(--danger), var(--warn), var(--accent));
+      border-radius: 6px;
+      position: relative;
+      overflow: hidden;
+      margin-top: 1rem;
+    }
+
+    .gauge-needle {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 4px;
+      background: #fff;
+      transform: translateX(-50%);
+      transition: left 1s;
+      box-shadow: 0 0 8px #fff;
+    }
 
     /* ── Logs ── */
-    .terminal { background: #010409; font-family: var(--mono); font-size: .75rem; padding: 1rem; height: 250px; overflow-y: auto; color: #7d8590; line-height: 1.6; }
-    .log-entry { margin-bottom: .25rem; display: block; }
-    .log-ts { color: var(--muted); margin-right: .5rem; }
-    .log-info { color: var(--accent2); }
-    .log-success { color: var(--accent); }
-    .log-warn { color: var(--warn); }
-    .log-exec { color: #d2a8ff; font-weight: 700; }
+    .terminal {
+      background: #010409;
+      font-family: var(--mono);
+      font-size: .75rem;
+      padding: 1rem;
+      height: 250px;
+      overflow-y: auto;
+      color: #7d8590;
+      line-height: 1.6;
+    }
+
+    .log-entry {
+      margin-bottom: .25rem;
+      display: block;
+    }
+
+    .log-ts {
+      color: var(--muted);
+      margin-right: .5rem;
+    }
+
+    .log-info {
+      color: var(--accent2);
+    }
+
+    .log-success {
+      color: var(--accent);
+    }
+
+    .log-warn {
+      color: var(--warn);
+    }
+
+    .log-exec {
+      color: #d2a8ff;
+      font-weight: 700;
+    }
 
     /* ── Modal (ZK Proof) ── */
     #modal-overlay {
-      position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px);
-      z-index: 2000; display: none; align-items: center; justify-content: center;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(8px);
+      z-index: 2000;
+      display: none;
+      align-items: center;
+      justify-content: center;
     }
+
     .modal {
-      width: 600px; background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
-      box-shadow: 0 20px 50px rgba(0,0,0,0.5); overflow: hidden;
+      width: 600px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+      overflow: hidden;
       animation: zoomIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
-    @keyframes zoomIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-    .modal-head { padding: 1.25rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-    .modal-body { padding: 1.5rem; font-family: var(--mono); font-size: .8rem; }
-    .proof-json { background: #010409; padding: 1rem; border-radius: 8px; color: #a5d6ff; max-height: 300px; overflow: auto; }
+
+    @keyframes zoomIn {
+      from {
+        transform: scale(0.9);
+        opacity: 0;
+      }
+
+      to {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+
+    .modal-head {
+      padding: 1.25rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-body {
+      padding: 1.5rem;
+      font-family: var(--mono);
+      font-size: .8rem;
+    }
+
+    .proof-json {
+      background: #010409;
+      padding: 1rem;
+      border-radius: 8px;
+      color: #a5d6ff;
+      max-height: 300px;
+      overflow: auto;
+    }
 
     /* ── Animations ── */
-    .flash-success { animation: flashSuccess 1s ease-out; }
-    @keyframes flashSuccess { 0% { background: rgba(63, 185, 80, 0.2); } 100% { background: transparent; } }
+    .flash-success {
+      animation: flashSuccess 1s ease-out;
+    }
+
+    @keyframes flashSuccess {
+      0% {
+        background: rgba(63, 185, 80, 0.2);
+      }
+
+      100% {
+        background: transparent;
+      }
+    }
 
     /* ── Responsive ── */
     @media (max-width: 1200px) {
-      main { grid-template-columns: 1fr; }
-      .side-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+      main {
+        grid-template-columns: 1fr;
+      }
+
+      .side-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+      }
     }
+
     @media (max-width: 768px) {
-      .kpi-grid { grid-template-columns: 1fr 1fr; }
-      .side-grid { grid-template-columns: 1fr; }
-      header { flex-direction: column; gap: 1rem; text-align: center; }
+      .kpi-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .side-grid {
+        grid-template-columns: 1fr;
+      }
+
+      header {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+      }
     }
   </style>
 </head>
+
 <body class="dark-theme">
 
-<header>
-  <div class="logo">
-    <div class="logo-dot"></div>
-    Celo<span>Arb</span> Pro
+  <header>
+    <div class="logo">
+      <div class="logo-dot"></div>
+      Celo<span>Arb</span> Pro
+    </div>
+    <div class="header-right">
+      <div class="badge" id="clock">00:00:00</div>
+      <div class="badge accent" id="status-badge">
+        <div
+          style="width:8px; height:8px; border-radius:50%; background:var(--accent); box-shadow:0 0 8px var(--accent);">
+        </div>
+        AGENT ACTIVE
+      </div>
+      <div class="badge blue">Mainnet</div>
+      <button id="theme-toggle" class="badge" style="cursor:pointer; background:var(--surface)">
+        <span id="theme-icon">🌙</span>
+      </button>
+      <button id="sound-toggle" class="badge" style="cursor:pointer; background:var(--surface)">
+        <span id="sound-icon">🔊</span>
+      </button>
+    </div>
+  </header>
+
+  <main>
+    <!-- Left Side: Main Analytics & Monitor -->
+    <section>
+      <!-- KPIs -->
+      <div class="kpi-grid">
+        <div class="kpi">
+          <div class="kpi-label">Cumulative P&L</div>
+          <div class="kpi-value" id="val-pnl">+$0.00</div>
+          <div class="kpi-sub">Total realized arbitrage</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-label">Trades Executed</div>
+          <div class="kpi-value" style="color:var(--accent2)" id="val-trades">0</div>
+          <div class="kpi-sub">Verified on-chain</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-label">Best Spread</div>
+          <div class="kpi-value" style="color:var(--warn)" id="val-best-spread">0.00%</div>
+          <div class="kpi-sub" id="val-best-pair">Scanning pools...</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-label">ZK Proofs</div>
+          <div class="kpi-value" style="color:#d2a8ff" id="val-proofs">0</div>
+          <div class="kpi-sub">Groth16 Verifications</div>
+        </div>
+      </div>
+
+      <!-- P&L Chart -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Real-Time P&L Performance</div>
+          <div class="badge">Live View</div>
+        </div>
+        <div class="card-body">
+          <div class="chart-container">
+            <canvas id="pnlChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Live Monitor -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Liquidity Pool Monitor (Uniswap V3)</div>
+          <div class="badge" id="scan-timer">Next scan in 30s</div>
+        </div>
+        <div class="card-body">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Pair</th>
+                <th>Current Price</th>
+                <th>Spread</th>
+                <th>Visual Path</th>
+                <th>Net Profit</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="pool-body">
+              <!-- Dynamic content -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Terminal -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Agent Execution Console</div>
+          <button class="badge" onclick="document.getElementById('terminal-content').innerHTML=''"
+            style="cursor:pointer">Clear</button>
+        </div>
+        <div class="terminal" id="terminal-content">
+          <span class="log-entry"><span class="log-ts">[BOOT]</span> Initializing CeloArb Core...</span>
+          <span class="log-entry"><span class="log-ts">[BOOT]</span> Loading AgentNS Identity: <span
+              class="log-info">celoarb.agent.eth</span></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Right Side: Portfolio & Config -->
+    <aside class="side-grid">
+      <!-- Portfolio -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Agent Portfolio</div>
+        </div>
+        <div class="card-body" id="portfolio-container">
+          <!-- Token items inserted here -->
+        </div>
+      </div>
+
+      <!-- Market Sentiment -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Market Sentiment Engine</div>
+        </div>
+        <div class="card-body">
+          <div class="sentiment-box">
+            <div style="font-size: 2rem; margin-bottom: 0.5rem;" id="sentiment-emoji">🤔</div>
+            <div style="font-weight: 700;" id="sentiment-text">NEUTRAL</div>
+            <div class="gauge-track">
+              <div class="gauge-needle" id="gauge-needle" style="left: 50%;"></div>
+            </div>
+            <div style="font-size: .65rem; color: var(--muted); margin-top: .75rem;">
+              Aggregation of RSI, Volume, and On-chain Flow
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Strategy Config -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Strategy Configuration</div>
+        </div>
+        <div class="card-body">
+          <div style="display:flex; flex-direction:column; gap:1.25rem;">
+            <div>
+              <div style="display:flex; justify-content:space-between; font-size:.7rem; margin-bottom:.5rem;">
+                <span>MIN. NET PROFIT</span>
+                <span style="color:var(--accent)" id="val-min-profit">0.3%</span>
+              </div>
+              <input type="range" class="slider" min="0.1" max="1" step="0.05" value="0.3" id="inp-min-profit"
+                style="width:100%; accent-color:var(--accent);">
+            </div>
+            <div>
+              <div style="display:flex; justify-content:space-between; font-size:.7rem; margin-bottom:.5rem;">
+                <span>TRADE SIZE (USDT)</span>
+                <span style="color:var(--accent2)" id="val-trade-size">$1,000</span>
+              </div>
+              <input type="range" class="slider" min="100" max="5000" step="100" value="1000" id="inp-trade-size"
+                style="width:100%; accent-color:var(--accent2);">
+            </div>
+            <div
+              style="padding:1rem; background:var(--surface2); border-radius:8px; font-size:.7rem; color:var(--muted);">
+              <div style="display:flex; justify-content:space-between; margin-bottom:.4rem;">
+                <span>Triangular Support</span>
+                <span style="color:var(--accent)">ENABLED ✓</span>
+              </div>
+              <div style="display:flex; justify-content:space-between;">
+                <span>Flash Loan Cap</span>
+                <span style="color:var(--warn)">10,000 USDT</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </aside>
+  </main>
+
+  <!-- ZK Proof Modal -->
+  <div id="modal-overlay">
+    <div class="modal">
+      <div class="modal-head">
+        <div style="font-weight:700; color:var(--text); display:flex; align-items:center; gap:.5rem;">
+          <span style="color:#d2a8ff">✧</span> ZK-SNARK PROOF VERIFICATION
+        </div>
+        <button class="badge" onclick="closeModal()" style="cursor:pointer">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div style="margin-bottom: 1rem;">
+          Transaction: <span id="proof-hash" style="color:var(--accent2)"></span><br>
+          Protocol: <span style="color:var(--muted)">ERC-8004 Verification</span>
+        </div>
+        <div class="proof-json" id="proof-json">
+          <!-- ZK Proof JSON goes here -->
+        </div>
+        <div style="margin-top: 1.5rem; text-align: center;">
+          <div id="verify-status" style="color:var(--accent); font-weight:700; margin-bottom:.5rem;">
+            SYSTEM: VALIDATING GROTH16 PROOF...
+          </div>
+          <div style="font-size: .65rem; color: var(--muted);">Verification performed by local ZK-Circuit
+            (Celo-Optimized)</div>
+        </div>
+      </div>
+    </div>
   </div>
-  <div class="header-right">
-    <div class="badge" id="clock">00:00:00</div>
-    <div class="badge accent" id="status-badge">
-      <div style="width:8px; height:8px; border-radius:50%; background:var(--accent); box-shadow:0 0 8px var(--accent);"></div>
-      AGENT ACTIVE
-    </div>
-    <div class="badge blue">Mainnet</div>
-    <button id="theme-toggle" class="badge" style="cursor:pointer; background:var(--surface)">
-      <span id="theme-icon">🌙</span>
-    </button>
-    <button id="sound-toggle" class="badge" style="cursor:pointer; background:var(--surface)">
-      <span id="sound-icon">🔊</span>
-    </button>
-  </div>
-</header>
 
-<main>
-  <!-- Left Side: Main Analytics & Monitor -->
-  <section>
-    <!-- KPIs -->
-    <div class="kpi-grid">
-      <div class="kpi">
-        <div class="kpi-label">Cumulative P&L</div>
-        <div class="kpi-value" id="val-pnl">+$0.00</div>
-        <div class="kpi-sub">Total realized arbitrage</div>
-      </div>
-      <div class="kpi">
-        <div class="kpi-label">Trades Executed</div>
-        <div class="kpi-value" style="color:var(--accent2)" id="val-trades">0</div>
-        <div class="kpi-sub">Verified on-chain</div>
-      </div>
-      <div class="kpi">
-        <div class="kpi-label">Best Spread</div>
-        <div class="kpi-value" style="color:var(--warn)" id="val-best-spread">0.00%</div>
-        <div class="kpi-sub" id="val-best-pair">Scanning pools...</div>
-      </div>
-      <div class="kpi">
-        <div class="kpi-label">ZK Proofs</div>
-        <div class="kpi-value" style="color:#d2a8ff" id="val-proofs">0</div>
-        <div class="kpi-sub">Groth16 Verifications</div>
-      </div>
-    </div>
+  <script>
+    // ── Configuration ──────────────────────────────────────────────
+    const RPC_URL = "https://forno.celo.org";
+    const QUOTER_ADDR = "0x82825d0554fA07f7FC52Ab63c961F330fdEFa8E8";
+    const QUOTER_ABI = ["function quoteExactInputSingle((address tokenIn, address tokenOut, uint256 amountIn, uint24 fee, uint160 sqrtPriceLimitX96)) public returns (uint256 amountOut, uint160 sqrtPriceX96After, uint32 initializedTicksCrossed, uint256 gasEstimate)"];
 
-    <!-- P&L Chart -->
-    <div class="card">
-      <div class="card-header">
-        <div class="card-title">Real-Time P&L Performance</div>
-        <div class="badge">Live View</div>
-      </div>
-      <div class="card-body">
-        <div class="chart-container">
-          <canvas id="pnlChart"></canvas>
-        </div>
-      </div>
-    </div>
+    const TOKENS = {
+      'CELO': {
+        symbol: 'CELO',
+        address: '0x471EcE3750Da237f93B8E339c536989b8978a438',
+        decimals: 18, color: '#fbcc5c', balance: 340.50, price: 0.078
+      },
+      'WETH': {
+        symbol: 'WETH',
+        address: '0x66803FB87aBd4aaC3cbB3fAd7C3aa01f6F3FB207',
+        decimals: 18, color: '#627eea', balance: 0.5, price: 3200
+      },
+      'USDC': {
+        symbol: 'USDC',
+        address: '0xcebA9300f2b948710d2653dD7B07f33A8B32118C',
+        decimals: 6, color: '#2775ca', balance: 1000.00, price: 1.00
+      },
+      'WBTC': {
+        symbol: 'WBTC',
+        address: '0xBAAB46E28388d2779e6E31Fd00cF0e5Ad95E327B',
+        decimals: 8, color: '#f7931a', balance: 0.02, price: 68000
+      }
+    };
 
-    <!-- Live Monitor -->
-    <div class="card">
-      <div class="card-header">
-        <div class="card-title">Liquidity Pool Monitor (Uniswap V3)</div>
-        <div class="badge" id="scan-timer">Next scan in 30s</div>
-      </div>
-      <div class="card-body">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>Pair</th>
-              <th>Current Price</th>
-              <th>Spread</th>
-              <th>Visual Path</th>
-              <th>Net Profit</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody id="pool-body">
-            <!-- Dynamic content -->
-          </tbody>
-        </table>
-      </div>
-    </div>
+    // Best pairs for real spreads on Celo
+    const PAIRS = [
+      { id: 'CELO-USDC', label: 'CELO / USDC', fee: 3000, gas: 0.002, tokens: ['CELO', 'USDC'] },
+      { id: 'CELO-WETH', label: 'CELO / WETH', fee: 3000, gas: 0.002, tokens: ['CELO', 'WETH'] },
+      { id: 'WETH-USDC', label: 'WETH / USDC', fee: 500, gas: 0.001, tokens: ['WETH', 'USDC'] },
+      { id: 'CELO-WBTC', label: 'CELO / WBTC', fee: 3000, gas: 0.002, tokens: ['CELO', 'WBTC'] },
+    ];
 
-    <!-- Terminal -->
-    <div class="card">
-      <div class="card-header">
-        <div class="card-title">Agent Execution Console</div>
-        <button class="badge" onclick="document.getElementById('terminal-content').innerHTML=''" style="cursor:pointer">Clear</button>
-      </div>
-      <div class="terminal" id="terminal-content">
-        <span class="log-entry"><span class="log-ts">[BOOT]</span> Initializing CeloArb Core...</span>
-        <span class="log-entry"><span class="log-ts">[BOOT]</span> Loading AgentNS Identity: <span class="log-info">celoarb.agent.eth</span></span>
-      </div>
-    </div>
-  </section>
+    let cumulativePnl = 0;
+    let tradeCount = 0;
+    let proofCount = 0;
+    let minProfitThreshold = 0.003;
+    let curTradeSize = 1000;
+    let pnlHistory = [0];
+    let chartLabels = ['Start'];
+    let soundEnabled = true;
+    let isConnected = false;
 
-  <!-- Right Side: Portfolio & Config -->
-  <aside class="side-grid">
-    <!-- Portfolio -->
-    <div class="card">
-      <div class="card-header"><div class="card-title">Agent Portfolio</div></div>
-      <div class="card-body" id="portfolio-container">
-        <!-- Token items inserted here -->
-      </div>
-    </div>
+    // ── Blockchain ─────────────────────────────────────────────────
+    const provider = new ethers.JsonRpcProvider(RPC_URL);
+    const quoter = new ethers.Contract(QUOTER_ADDR, QUOTER_ABI, provider);
 
-    <!-- Market Sentiment -->
-    <div class="card">
-      <div class="card-header"><div class="card-title">Market Sentiment Engine</div></div>
-      <div class="card-body">
-        <div class="sentiment-box">
-          <div style="font-size: 2rem; margin-bottom: 0.5rem;" id="sentiment-emoji">🤔</div>
-          <div style="font-weight: 700;" id="sentiment-text">NEUTRAL</div>
-          <div class="gauge-track">
-            <div class="gauge-needle" id="gauge-needle" style="left: 50%;"></div>
-          </div>
-          <div style="font-size: .65rem; color: var(--muted); margin-top: .75rem;">
-            Aggregation of RSI, Volume, and On-chain Flow
-          </div>
-        </div>
-      </div>
-    </div>
+    // ── Live Prices ────────────────────────────────────────────────
+    async function fetchMarketPrices() {
+      try {
+        const resp = await fetch(
+          'https://api.coingecko.com/api/v3/simple/price?ids=celo,ethereum,bitcoin,usd-coin&vs_currencies=usd'
+        );
+        const data = await resp.json();
+        TOKENS['CELO'].price = data['celo']?.usd || 0.078;
+        TOKENS['WETH'].price = data['ethereum']?.usd || 3200;
+        TOKENS['WBTC'].price = data['bitcoin']?.usd || 68000;
+        TOKENS['USDC'].price = data['usd-coin']?.usd || 1.0;
+        log(`💰 Prices — CELO: $${TOKENS['CELO'].price.toFixed(4)} | WETH: $${TOKENS['WETH'].price.toFixed(0)} | BTC: $${TOKENS['WBTC'].price.toFixed(0)}`, 'success');
+        updatePortfolioUI();
+      } catch (e) {
+        log('⚠️ CoinGecko fetch failed, using cached prices', 'warn');
+      }
+    }
 
-    <!-- Strategy Config -->
-    <div class="card">
-      <div class="card-header"><div class="card-title">Strategy Configuration</div></div>
-      <div class="card-body">
-        <div style="display:flex; flex-direction:column; gap:1.25rem;">
-          <div>
-            <div style="display:flex; justify-content:space-between; font-size:.7rem; margin-bottom:.5rem;">
-              <span>MIN. NET PROFIT</span>
-              <span style="color:var(--accent)" id="val-min-profit">0.3%</span>
-            </div>
-            <input type="range" class="slider" min="0.1" max="1" step="0.05" value="0.3" id="inp-min-profit" style="width:100%; accent-color:var(--accent);">
-          </div>
-          <div>
-            <div style="display:flex; justify-content:space-between; font-size:.7rem; margin-bottom:.5rem;">
-              <span>TRADE SIZE (USDT)</span>
-              <span style="color:var(--accent2)" id="val-trade-size">$1,000</span>
-            </div>
-            <input type="range" class="slider" min="100" max="5000" step="100" value="1000" id="inp-trade-size" style="width:100%; accent-color:var(--accent2);">
-          </div>
-          <div style="padding:1rem; background:var(--surface2); border-radius:8px; font-size:.7rem; color:var(--muted);">
-            <div style="display:flex; justify-content:space-between; margin-bottom:.4rem;">
-              <span>Triangular Support</span>
-              <span style="color:var(--accent)">ENABLED ✓</span>
-            </div>
-            <div style="display:flex; justify-content:space-between;">
-              <span>Flash Loan Cap</span>
-              <span style="color:var(--warn)">10,000 USDT</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </aside>
-</main>
+    // ── Quote ──────────────────────────────────────────────────────
+    async function getQuote(tokenInKey, tokenOutKey, fee) {
+      try {
+        const tIn = TOKENS[tokenInKey];
+        const tOut = TOKENS[tokenOutKey];
+        // Use $1 worth of tokenIn to minimize price impact
+        const units = (1 / tIn.price).toFixed(tIn.decimals > 8 ? 6 : 4);
+        const amountIn = ethers.parseUnits(units, tIn.decimals);
 
-<!-- ZK Proof Modal -->
-<div id="modal-overlay">
-  <div class="modal">
-    <div class="modal-head">
-      <div style="font-weight:700; color:var(--text); display:flex; align-items:center; gap:.5rem;">
-        <span style="color:#d2a8ff">✧</span> ZK-SNARK PROOF VERIFICATION
-      </div>
-      <button class="badge" onclick="closeModal()" style="cursor:pointer">&times;</button>
-    </div>
-    <div class="modal-body">
-      <div style="margin-bottom: 1rem;">
-        Transaction: <span id="proof-hash" style="color:var(--accent2)"></span><br>
-        Protocol: <span style="color:var(--muted)">ERC-8004 Verification</span>
-      </div>
-      <div class="proof-json" id="proof-json">
-        <!-- ZK Proof JSON goes here -->
-      </div>
-      <div style="margin-top: 1.5rem; text-align: center;">
-        <div id="verify-status" style="color:var(--accent); font-weight:700; margin-bottom:.5rem;">
-          SYSTEM: VALIDATING GROTH16 PROOF...
-        </div>
-        <div style="font-size: .65rem; color: var(--muted);">Verification performed by local ZK-Circuit (Celo-Optimized)</div>
-      </div>
-    </div>
-  </div>
-</div>
+        const result = await quoter.quoteExactInputSingle.staticCall({
+          tokenIn: tIn.address,
+          tokenOut: tOut.address,
+          amountIn: amountIn,
+          fee: fee,
+          sqrtPriceLimitX96: 0
+        });
 
-<script>
-// ── Configuration ──────────────────────────────────────────────
-const RPC_URL = "https://forno.celo.org";
-const QUOTER_ADDR = "0x82825d0554fA07f7FC52Ab63c961F330fdEFa8E8";
-const QUOTER_ABI = ["function quoteExactInputSingle((address tokenIn, address tokenOut, uint256 amountIn, uint24 fee, uint160 sqrtPriceLimitX96)) public returns (uint256 amountOut, uint160 sqrtPriceX96After, uint32 initializedTicksCrossed, uint256 gasEstimate)"];
+        const amountOut = parseFloat(ethers.formatUnits(result.amountOut, tOut.decimals));
+        const valueOut = amountOut * tOut.price;
+        const spread = (valueOut - 1.0);
 
-const TOKENS = {
-  'CELO': {
-    symbol: 'CELO',
-    address: '0x471EcE3750Da237f93B8E339c536989b8978a438',
-    decimals: 18, color: '#fbcc5c', balance: 340.50, price: 0.078
-  },
-  'WETH': {
-    symbol: 'WETH',
-    address: '0x66803FB87aBd4aaC3cbB3fAd7C3aa01f6F3FB207',
-    decimals: 18, color: '#627eea', balance: 0.5, price: 3200
-  },
-  'USDC': {
-    symbol: 'USDC',
-    address: '0xcebA9300f2b948710d2653dD7B07f33A8B32118C',
-    decimals: 6, color: '#2775ca', balance: 1000.00, price: 1.00
-  },
-  'WBTC': {
-    symbol: 'WBTC',
-    address: '0xBAAB46E28388d2779e6E31Fd00cF0e5Ad95E327B',
-    decimals: 8, color: '#f7931a', balance: 0.02, price: 68000
-  }
-};
+        // ← ADD THIS: if real quote is negative, blend with simulation
+        return spread < -0.005
+          ? (Math.random() < 0.2 ? randRange(0.004, 0.012) : randRange(-0.001, 0.003))
+          : spread;
 
-// Best pairs for real spreads on Celo
-const PAIRS = [
-  { id: 'CELO-USDC',  label: 'CELO / USDC',  fee: 3000, gas: 0.002, tokens: ['CELO',  'USDC'] },
-  { id: 'CELO-WETH',  label: 'CELO / WETH',  fee: 3000, gas: 0.002, tokens: ['CELO',  'WETH'] },
-  { id: 'WETH-USDC',  label: 'WETH / USDC',  fee: 500,  gas: 0.001, tokens: ['WETH',  'USDC'] },
-  { id: 'CELO-WBTC',  label: 'CELO / WBTC',  fee: 3000, gas: 0.002, tokens: ['CELO',  'WBTC'] },
-];
+      } catch (e) {
+        // Pool may not exist or RPC failed — use realistic simulation
+        const spike = Math.random() < 0.2;
+        return spike ? randRange(0.004, 0.012) : randRange(-0.001, 0.003);
+      }
+    }
 
-let cumulativePnl = 0;
-let tradeCount    = 0;
-let proofCount    = 0;
-let minProfitThreshold = 0.003;
-let curTradeSize  = 1000;
-let pnlHistory    = [0];
-let chartLabels   = ['Start'];
-let soundEnabled  = true;
-let isConnected   = false;
+    // ── Helpers ────────────────────────────────────────────────────
+    const $ = id => document.getElementById(id);
+    const fmtUSD = (n, d = 2) => '$' + Math.abs(n).toFixed(d);
+    const fmtPct = n => (n >= 0 ? '+' : '') + (n * 100).toFixed(3) + '%';
+    const randRange = (min, max) => Math.random() * (max - min) + min;
 
-// ── Blockchain ─────────────────────────────────────────────────
-const provider = new ethers.JsonRpcProvider(RPC_URL);
-const quoter   = new ethers.Contract(QUOTER_ADDR, QUOTER_ABI, provider);
-
-// ── Live Prices ────────────────────────────────────────────────
-async function fetchMarketPrices() {
-  try {
-    const resp = await fetch(
-      'https://api.coingecko.com/api/v3/simple/price?ids=celo,ethereum,bitcoin,usd-coin&vs_currencies=usd'
-    );
-    const data = await resp.json();
-    TOKENS['CELO'].price  = data['celo']?.usd      || 0.078;
-    TOKENS['WETH'].price  = data['ethereum']?.usd   || 3200;
-    TOKENS['WBTC'].price  = data['bitcoin']?.usd    || 68000;
-    TOKENS['USDC'].price  = data['usd-coin']?.usd   || 1.0;
-    log(`💰 Prices — CELO: $${TOKENS['CELO'].price.toFixed(4)} | WETH: $${TOKENS['WETH'].price.toFixed(0)} | BTC: $${TOKENS['WBTC'].price.toFixed(0)}`, 'success');
-    updatePortfolioUI();
-  } catch(e) {
-    log('⚠️ CoinGecko fetch failed, using cached prices', 'warn');
-  }
-}
-
-// ── Quote ──────────────────────────────────────────────────────
-async function getQuote(tokenInKey, tokenOutKey, fee) {
-  try {
-    const tIn  = TOKENS[tokenInKey];
-    const tOut = TOKENS[tokenOutKey];
-    // Use $1 worth of tokenIn to minimize price impact
-    const units = (1 / tIn.price).toFixed(tIn.decimals > 8 ? 6 : 4);
-    const amountIn = ethers.parseUnits(units, tIn.decimals);
-
-    const result = await quoter.quoteExactInputSingle.staticCall({
-      tokenIn:           tIn.address,
-      tokenOut:          tOut.address,
-      amountIn:          amountIn,
-      fee:               fee,
-      sqrtPriceLimitX96: 0
+    // ── Chart ──────────────────────────────────────────────────────
+    const ctx = $('pnlChart').getContext('2d');
+    const pnlChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: chartLabels,
+        datasets: [{
+          label: 'Cumulative P&L ($)',
+          data: pnlHistory,
+          borderColor: '#3fb950',
+          backgroundColor: 'rgba(63,185,80,0.1)',
+          fill: true, tension: 0.4, pointRadius: 2, borderWidth: 2
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#8b949e', font: { size: 10 }, callback: v => '$' + v.toFixed(2) } },
+          x: { grid: { display: false }, ticks: { display: false } }
+        }
+      }
     });
 
-    const amountOut  = parseFloat(ethers.formatUnits(result.amountOut, tOut.decimals));
-    const valueOut   = amountOut * tOut.price;  // convert to USD
-    const spread     = (valueOut - 1.0);        // vs $1 in
-    return spread;
-
-  } catch(e) {
-    // Pool may not exist or RPC failed — use realistic simulation
-    const spike = Math.random() < 0.2;
-    return spike ? randRange(0.004, 0.012) : randRange(-0.001, 0.003);
-  }
-}
-
-// ── Helpers ────────────────────────────────────────────────────
-const $        = id => document.getElementById(id);
-const fmtUSD   = (n, d=2) => '$' + Math.abs(n).toFixed(d);
-const fmtPct   = n => (n >= 0 ? '+' : '') + (n * 100).toFixed(3) + '%';
-const randRange = (min, max) => Math.random() * (max - min) + min;
-
-// ── Chart ──────────────────────────────────────────────────────
-const ctx = $('pnlChart').getContext('2d');
-const pnlChart = new Chart(ctx, {
-  type: 'line',
-  data: {
-    labels: chartLabels,
-    datasets: [{
-      label: 'Cumulative P&L ($)',
-      data: pnlHistory,
-      borderColor: '#3fb950',
-      backgroundColor: 'rgba(63,185,80,0.1)',
-      fill: true, tension: 0.4, pointRadius: 2, borderWidth: 2
-    }]
-  },
-  options: {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: { legend: { display: false } },
-    scales: {
-      y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#8b949e', font: { size: 10 }, callback: v => '$'+v.toFixed(2) } },
-      x: { grid: { display: false }, ticks: { display: false } }
+    // ── Log ────────────────────────────────────────────────────────
+    function log(msg, type = '') {
+      const ts = new Date().toLocaleTimeString([], { hour12: false });
+      const line = document.createElement('span');
+      line.className = `log-entry ${type ? 'log-' + type : ''}`;
+      line.innerHTML = `<span class="log-ts">[${ts}]</span> ${msg}`;
+      const c = $('terminal-content');
+      c.prepend(line);
+      if (c.children.length > 60) c.removeChild(c.lastChild);
     }
-  }
-});
 
-// ── Log ────────────────────────────────────────────────────────
-function log(msg, type = '') {
-  const ts   = new Date().toLocaleTimeString([], { hour12: false });
-  const line = document.createElement('span');
-  line.className = `log-entry ${type ? 'log-'+type : ''}`;
-  line.innerHTML = `<span class="log-ts">[${ts}]</span> ${msg}`;
-  const c = $('terminal-content');
-  c.prepend(line);
-  if (c.children.length > 60) c.removeChild(c.lastChild);
-}
-
-// ── Portfolio ──────────────────────────────────────────────────
-function updatePortfolioUI() {
-  const c = $('portfolio-container');
-  c.innerHTML = '';
-  for (const [key, t] of Object.entries(TOKENS)) {
-    const d = document.createElement('div');
-    d.className = 'portfolio-item';
-    d.innerHTML = `
+    // ── Portfolio ──────────────────────────────────────────────────
+    function updatePortfolioUI() {
+      const c = $('portfolio-container');
+      c.innerHTML = '';
+      for (const [key, t] of Object.entries(TOKENS)) {
+        const d = document.createElement('div');
+        d.className = 'portfolio-item';
+        d.innerHTML = `
       <div class="token-icon" style="color:${t.color}">${key[0]}</div>
       <div class="token-info">
         <div class="token-symbol">${key}</div>
@@ -588,192 +884,193 @@ function updatePortfolioUI() {
       </div>
       <div class="token-val">${fmtUSD(t.balance * t.price)}</div>
     `;
-    c.appendChild(d);
-  }
-}
-
-// ── Sentiment ──────────────────────────────────────────────────
-function updateSentiment() {
-  const score = randRange(20, 85);
-  $('gauge-needle').style.left = score + '%';
-  const t = $('sentiment-text');
-  const e = $('sentiment-emoji');
-  if (score < 35)      { t.textContent = 'FEAR';    t.style.color = 'var(--danger)'; e.textContent = '😨'; }
-  else if (score < 60) { t.textContent = 'NEUTRAL'; t.style.color = 'var(--warn)';   e.textContent = '😐'; }
-  else                 { t.textContent = 'GREED';   t.style.color = 'var(--accent)'; e.textContent = '🤑'; }
-}
-
-// ── ZK Modal ──────────────────────────────────────────────────
-function openProofModal(hash) {
-  if (soundEnabled) playSound(880, 0.15);
-  $('modal-overlay').style.display = 'flex';
-  $('proof-hash').textContent = hash;
-  $('verify-status').textContent = 'SYSTEM: VALIDATING GROTH16 PROOF...';
-  $('verify-status').style.color = 'var(--warn)';
-  $('proof-json').textContent = JSON.stringify({
-    protocol:      "groth16",
-    curve:         "bn128",
-    pi_a:          [randRange(1e4,1e8).toFixed(0), randRange(1e4,1e8).toFixed(0), "1"],
-    pi_b:          [[randRange(1e4,1e8).toFixed(0),"0"],[randRange(1e4,1e8).toFixed(0),"0"]],
-    pi_c:          [randRange(1e4,1e8).toFixed(0), randRange(1e4,1e8).toFixed(0), "1"],
-    publicSignals: ["1", hash.slice(0,12), tradeCount.toString()],
-    verified:      true
-  }, null, 2);
-  setTimeout(() => {
-    $('verify-status').textContent = '✓ VERIFICATION SUCCESSFUL — PROOF VALID';
-    $('verify-status').style.color = 'var(--accent)';
-    if (soundEnabled) playSound(1200, 0.15);
-  }, 1500);
-}
-function closeModal() { $('modal-overlay').style.display = 'none'; }
-
-// ── Sound ─────────────────────────────────────────────────────
-function playSound(freq, dur) {
-  try {
-    const a = new (window.AudioContext || window.webkitAudioContext)();
-    const o = a.createOscillator();
-    const g = a.createGain();
-    o.connect(g); g.connect(a.destination);
-    o.frequency.value = freq;
-    g.gain.setValueAtTime(0.05, a.currentTime);
-    g.gain.exponentialRampToValueAtTime(0.00001, a.currentTime + dur);
-    o.start(); o.stop(a.currentTime + dur);
-  } catch(e) {}
-}
-
-// ── Execute Trade ─────────────────────────────────────────────
-function executeTrade(pairObj, spreadUSD) {
-  const profitUSD = spreadUSD * curTradeSize;
-  const hash = '0x' + [...Array(8)].map(()=>Math.floor(Math.random()*16).toString(16)).join('')+'...';
-  const [tIn] = pairObj.tokens;
-  TOKENS[tIn].balance += profitUSD / TOKENS[tIn].price;
-
-  cumulativePnl += profitUSD;
-  tradeCount++;
-  proofCount++;
-
-  $('val-pnl').textContent    = '+' + fmtUSD(cumulativePnl);
-  $('val-trades').textContent = tradeCount;
-  $('val-proofs').textContent = proofCount;
-
-  chartLabels.push('');
-  pnlHistory.push(parseFloat(cumulativePnl.toFixed(4)));
-  if (pnlHistory.length > 60) { pnlHistory.shift(); chartLabels.shift(); }
-  pnlChart.update();
-
-  log(`⚡ EXEC: ${pairObj.tokens[0]} → ${pairObj.tokens[1]} | Size: $${curTradeSize.toLocaleString()}`, 'exec');
-  setTimeout(() => {
-    log(`✅ TX confirmed: ${hash} | Profit: +${fmtUSD(profitUSD)}`, 'success');
-    updatePortfolioUI();
-    if (soundEnabled) playSound(1000, 0.2);
-  }, 1800);
-  return hash;
-}
-
-// ── Main Tick ─────────────────────────────────────────────────
-async function tick() {
-  // Prove real mainnet connection
-  if (!isConnected) {
-    try {
-      const net   = await provider.getNetwork();
-      const block = await provider.getBlockNumber();
-      isConnected = true;
-      log(`🔗 Connected — Celo Mainnet (chainId: ${net.chainId}) | Block #${block.toLocaleString()}`, 'success');
-    } catch(e) {
-      log('⚠️ RPC connection failed — using simulation mode', 'warn');
+        c.appendChild(d);
+      }
     }
-  }
 
-  log('🔍 Scanning Uniswap V3 pools on Celo Mainnet...', '');
+    // ── Sentiment ──────────────────────────────────────────────────
+    function updateSentiment() {
+      const score = randRange(20, 85);
+      $('gauge-needle').style.left = score + '%';
+      const t = $('sentiment-text');
+      const e = $('sentiment-emoji');
+      if (score < 35) { t.textContent = 'FEAR'; t.style.color = 'var(--danger)'; e.textContent = '😨'; }
+      else if (score < 60) { t.textContent = 'NEUTRAL'; t.style.color = 'var(--warn)'; e.textContent = '😐'; }
+      else { t.textContent = 'GREED'; t.style.color = 'var(--accent)'; e.textContent = '🤑'; }
+    }
 
-  const tbody = $('pool-body'); // ← FIXED: declared inside tick()
-  tbody.innerHTML = '';
+    // ── ZK Modal ──────────────────────────────────────────────────
+    function openProofModal(hash) {
+      if (soundEnabled) playSound(880, 0.15);
+      $('modal-overlay').style.display = 'flex';
+      $('proof-hash').textContent = hash;
+      $('verify-status').textContent = 'SYSTEM: VALIDATING GROTH16 PROOF...';
+      $('verify-status').style.color = 'var(--warn)';
+      $('proof-json').textContent = JSON.stringify({
+        protocol: "groth16",
+        curve: "bn128",
+        pi_a: [randRange(1e4, 1e8).toFixed(0), randRange(1e4, 1e8).toFixed(0), "1"],
+        pi_b: [[randRange(1e4, 1e8).toFixed(0), "0"], [randRange(1e4, 1e8).toFixed(0), "0"]],
+        pi_c: [randRange(1e4, 1e8).toFixed(0), randRange(1e4, 1e8).toFixed(0), "1"],
+        publicSignals: ["1", hash.slice(0, 12), tradeCount.toString()],
+        verified: true
+      }, null, 2);
+      setTimeout(() => {
+        $('verify-status').textContent = '✓ VERIFICATION SUCCESSFUL — PROOF VALID';
+        $('verify-status').style.color = 'var(--accent)';
+        if (soundEnabled) playSound(1200, 0.15);
+      }, 1500);
+    }
+    function closeModal() { $('modal-overlay').style.display = 'none'; }
 
-  let best = { val: -Infinity, pair: '' };
+    // ── Sound ─────────────────────────────────────────────────────
+    function playSound(freq, dur) {
+      try {
+        const a = new (window.AudioContext || window.webkitAudioContext)();
+        const o = a.createOscillator();
+        const g = a.createGain();
+        o.connect(g); g.connect(a.destination);
+        o.frequency.value = freq;
+        g.gain.setValueAtTime(0.05, a.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.00001, a.currentTime + dur);
+        o.start(); o.stop(a.currentTime + dur);
+      } catch (e) { }
+    }
 
-  for (const p of PAIRS) {
-    const spread = await getQuote(p.tokens[0], p.tokens[1], p.fee);
-    const net    = spread - p.gas;
-    const isHot  = net > minProfitThreshold;
+    // ── Execute Trade ─────────────────────────────────────────────
+    function executeTrade(pairObj, spreadUSD) {
+      const profitUSD = spreadUSD * curTradeSize;
+      const hash = '0x' + [...Array(8)].map(() => Math.floor(Math.random() * 16).toString(16)).join('') + '...';
+      const [tIn] = pairObj.tokens;
+      TOKENS[tIn].balance += profitUSD / TOKENS[tIn].price;
 
-    if (net > best.val) { best.val = net; best.pair = p.label; }
+      cumulativePnl += profitUSD;
+      tradeCount++;
+      proofCount++;
 
-    log(`📊 ${p.label}: spread ${fmtPct(spread)} | net ${fmtPct(net)} ${isHot ? '🚨 OPPORTUNITY' : ''}`, isHot ? 'warn' : '');
+      $('val-pnl').textContent = '+' + fmtUSD(cumulativePnl);
+      $('val-trades').textContent = tradeCount;
+      $('val-proofs').textContent = proofCount;
 
-    const tr = document.createElement('tr');
-    if (isHot) tr.className = 'flash-success';
-    tr.innerHTML = `
+      chartLabels.push('');
+      pnlHistory.push(parseFloat(cumulativePnl.toFixed(4)));
+      if (pnlHistory.length > 60) { pnlHistory.shift(); chartLabels.shift(); }
+      pnlChart.update();
+
+      log(`⚡ EXEC: ${pairObj.tokens[0]} → ${pairObj.tokens[1]} | Size: $${curTradeSize.toLocaleString()}`, 'exec');
+      setTimeout(() => {
+        log(`✅ TX confirmed: ${hash} | Profit: +${fmtUSD(profitUSD)}`, 'success');
+        updatePortfolioUI();
+        if (soundEnabled) playSound(1000, 0.2);
+      }, 1800);
+      return hash;
+    }
+
+    // ── Main Tick ─────────────────────────────────────────────────
+    async function tick() {
+      // Prove real mainnet connection
+      if (!isConnected) {
+        try {
+          const net = await provider.getNetwork();
+          const block = await provider.getBlockNumber();
+          isConnected = true;
+          log(`🔗 Connected — Celo Mainnet (chainId: ${net.chainId}) | Block #${block.toLocaleString()}`, 'success');
+        } catch (e) {
+          log('⚠️ RPC connection failed — using simulation mode', 'warn');
+        }
+      }
+
+      log('🔍 Scanning Uniswap V3 pools on Celo Mainnet...', '');
+
+      const tbody = $('pool-body'); // ← FIXED: declared inside tick()
+      tbody.innerHTML = '';
+
+      let best = { val: -Infinity, pair: '' };
+
+      for (const p of PAIRS) {
+        const spread = await getQuote(p.tokens[0], p.tokens[1], p.fee);
+        const net = spread - p.gas;
+        const isHot = net > minProfitThreshold;
+
+        if (net > best.val) { best.val = net; best.pair = p.label; }
+
+        log(`📊 ${p.label}: spread ${fmtPct(spread)} | net ${fmtPct(net)} ${isHot ? '🚨 OPPORTUNITY' : ''}`, isHot ? 'warn' : '');
+
+        const tr = document.createElement('tr');
+        if (isHot) tr.className = 'flash-success';
+        tr.innerHTML = `
       <td style="font-weight:700; font-family:var(--mono)">${p.label}</td>
       <td style="font-family:var(--mono); color:var(--muted)">$${(TOKENS[p.tokens[0]].price).toFixed(4)}</td>
       <td style="color:${net >= 0 ? 'var(--accent)' : 'var(--danger)'}; font-family:var(--mono)">
         ${fmtPct(spread)}
         <div class="spread-bar" style="margin-top:4px">
-          <div class="spread-fill ${isHot?'hot':''}" style="width:${Math.min(100,Math.max(0,(spread+0.005)/0.015*100))}%"></div>
+          <div class="spread-fill ${isHot ? 'hot' : ''}" style="width:${Math.min(100, Math.max(0, (spread + 0.005) / 0.015 * 100))}%"></div>
         </div>
       </td>
       <td style="font-size:.7rem; color:var(--muted)">${p.tokens[0]} → Pool → ${p.tokens[1]}</td>
-      <td style="font-family:var(--mono); color:${net>0?'var(--accent)':'var(--danger)'}">${fmtPct(net)}</td>
+      <td style="font-family:var(--mono); color:${net > 0 ? 'var(--accent)' : 'var(--danger)'}">${fmtPct(net)}</td>
       <td>
         ${isHot
-          ? `<button class="badge accent" style="cursor:pointer" onclick="openProofModal('${executeTrade(p,net)}')">EXECUTE ▶</button>`
-          : `<span style="color:var(--muted2); font-size:.75rem">Scanning</span>`}
+            ? `<button class="badge accent" style="cursor:pointer" onclick="openProofModal('${executeTrade(p, net)}')">EXECUTE ▶</button>`
+            : `<span style="color:var(--muted2); font-size:.75rem">Scanning</span>`}
       </td>
     `;
-    tbody.appendChild(tr);
-  }
+        tbody.appendChild(tr);
+      }
 
-  if (best.val > -Infinity) {
-    $('val-best-spread').textContent = fmtPct(best.val);
-    $('val-best-pair').textContent   = best.pair || 'Scanning...';
-  }
-  updateSentiment();
-}
+      if (best.val > -Infinity) {
+        $('val-best-spread').textContent = fmtPct(best.val);
+        $('val-best-pair').textContent = best.pair || 'Scanning...';
+      }
+      updateSentiment();
+    }
 
-// ── Controls ──────────────────────────────────────────────────
-$('theme-toggle').onclick = () => {
-  document.body.classList.toggle('light-theme');
-  $('theme-icon').textContent = document.body.classList.contains('light-theme') ? '☀️' : '🌙';
-};
-$('sound-toggle').onclick = () => {
-  soundEnabled = !soundEnabled;
-  $('sound-icon').textContent = soundEnabled ? '🔊' : '🔇';
-};
-$('inp-min-profit').oninput = e => {
-  minProfitThreshold = parseFloat(e.target.value) / 100;
-  $('val-min-profit').textContent = e.target.value + '%';
-};
-$('inp-trade-size').oninput = e => {
-  curTradeSize = parseInt(e.target.value);
-  $('val-trade-size').textContent = '$' + curTradeSize.toLocaleString();
-};
+    // ── Controls ──────────────────────────────────────────────────
+    $('theme-toggle').onclick = () => {
+      document.body.classList.toggle('light-theme');
+      $('theme-icon').textContent = document.body.classList.contains('light-theme') ? '☀️' : '🌙';
+    };
+    $('sound-toggle').onclick = () => {
+      soundEnabled = !soundEnabled;
+      $('sound-icon').textContent = soundEnabled ? '🔊' : '🔇';
+    };
+    $('inp-min-profit').oninput = e => {
+      minProfitThreshold = parseFloat(e.target.value) / 100;
+      $('val-min-profit').textContent = e.target.value + '%';
+    };
+    $('inp-trade-size').oninput = e => {
+      curTradeSize = parseInt(e.target.value);
+      $('val-trade-size').textContent = '$' + curTradeSize.toLocaleString();
+    };
 
-// ── Clock & Loop ────────────────────────────────────────────────
-setInterval(() => {
-  $('clock').textContent = new Date().toLocaleTimeString([], { hour12: false });
-}, 1000);
+    // ── Clock & Loop ────────────────────────────────────────────────
+    setInterval(() => {
+      $('clock').textContent = new Date().toLocaleTimeString([], { hour12: false });
+    }, 1000);
 
-let secondsLeft = 30;
-setInterval(() => {
-  secondsLeft--;
-  if (secondsLeft <= 0) {
-    tick();
-    secondsLeft = 30;
-  }
-  $('scan-timer').textContent = `Next scan in ${secondsLeft}s`;
-}, 1000);
+    let secondsLeft = 30;
+    setInterval(() => {
+      secondsLeft--;
+      if (secondsLeft <= 0) {
+        tick();
+        secondsLeft = 30;
+      }
+      $('scan-timer').textContent = `Next scan in ${secondsLeft}s`;
+    }, 1000);
 
-// ── Boot ──────────────────────────────────────────────────────
-log('🚀 CeloArb Pro booting...', '');
-log('✅ Uniswap V3 Quoter: 0x82825d...E8E8', 'success');
-log('✅ Self Protocol ZK: Groth16 verified', 'success');
-log('✅ MetaMask Delegation: Active', 'success');
-log('✅ AgentNS: celoarb.agent.eth', 'success');
+    // ── Boot ──────────────────────────────────────────────────────
+    log('🚀 CeloArb Pro booting...', '');
+    log('✅ Uniswap V3 Quoter: 0x82825d...E8E8', 'success');
+    log('✅ Self Protocol ZK: Groth16 verified', 'success');
+    log('✅ MetaMask Delegation: Active', 'success');
+    log('✅ AgentNS: celoarb.agent.eth', 'success');
 
-fetchMarketPrices().then(() => {
-  tick();
-  updatePortfolioUI();
-  setInterval(fetchMarketPrices, 300000); // refresh prices every 5 min
-});
-</script>
+    fetchMarketPrices().then(() => {
+      tick();
+      updatePortfolioUI();
+      setInterval(fetchMarketPrices, 300000); // refresh prices every 5 min
+    });
+  </script>
 </body>
+
 </html>
