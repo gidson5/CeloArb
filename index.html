@@ -594,7 +594,13 @@
           <div class="id-row"><span class="id-key">TWAP Window</span><span class="id-val">5 minutes</span></div>
           <div class="id-row"><span class="id-key">RSI Overbought</span><span class="id-val">&gt; 70 → skip</span></div>
           <div class="id-row"><span class="id-key">Current RSI</span><span class="id-val green" id="rsi-val">48.2</span></div>
-          <div class="id-row"><span class="id-key">Trade Size</span><span class="id-val">$1,000 USDT</span></div>
+          <div class="id-row" style="flex-direction: column; align-items: flex-start; gap: 0.6rem; padding: 1.2rem 0;">
+            <div style="display: flex; justify-content: space-between; width: 100%;">
+              <span class="id-key">Trade Size</span>
+              <span class="id-val green" id="trade-size-display">$1,000 USDT</span>
+            </div>
+            <input type="range" id="trade-size-slider" min="100" max="5000" step="100" value="1000" style="width: 100%; accent-color: var(--accent); cursor: pointer; height: 6px; border-radius: 3px; background: var(--border); -webkit-appearance: none; appearance: none;">
+          </div>
           <div class="id-row"><span class="id-key">Poll Interval</span><span class="id-val">30 seconds</span></div>
         </div>
       </div>
@@ -787,19 +793,30 @@
 
   // ── Theme Toggle ───────────────────────────────────────────────────────
   const themeToggle = $("theme-toggle");
-  const themeIcon = $("theme-icon");
-  const themeText = $("theme-text");
+  const themeIconSource = $("theme-icon");
+  const themeTextSource = $("theme-text");
+
+  // ── Trade size slider ──────────────────────────────────────────────────
+  const tradeSlider = $("trade-size-slider");
+  const tradeSizeDisplay = $("trade-size-display");
+
+  tradeSlider.addEventListener("input", (e) => {
+    const val = parseInt(e.target.value);
+    TRADE_AMT = val;
+    tradeSizeDisplay.textContent = `$${val.toLocaleString()} USDT`;
+    log(`⚙️ Strategy Updated: Trade Size set to $${val.toLocaleString()}`, "info");
+  });
 
   function setTheme(isLight) {
     if (isLight) {
       document.body.classList.add("light-theme");
-      themeIcon.textContent = "☀️";
-      themeText.textContent = "Light";
+      themeIconSource.textContent = "☀️";
+      themeTextSource.textContent = "Light";
       localStorage.setItem("theme", "light");
     } else {
       document.body.classList.remove("light-theme");
-      themeIcon.textContent = "🌙";
-      themeText.textContent = "Dark";
+      themeIconSource.textContent = "🌙";
+      themeTextSource.textContent = "Dark";
       localStorage.setItem("theme", "dark");
     }
   }
