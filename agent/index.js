@@ -38,7 +38,8 @@ async function startAgent() {
     console.log(`[${new Date().toLocaleTimeString()}] ✅ ArbRegistry contract: ${deployment.arbRegistry || "0x..."}`);
 
     console.log(`[${new Date().toLocaleTimeString()}] 🔍 Scanning: cUSD/USDT | cUSD/USDC | USDT/USDC`);
-    setInterval(async () => {
+    
+    const runScan = async () => {
         try {
             const spreads = await monitor.getSpreads(ARB_CONFIG);
             const spreadStr = spreads.map(s => `${s.pair} +${(s.spread * 100).toFixed(2)}%`).join(" | ");
@@ -72,7 +73,13 @@ async function startAgent() {
         } catch (error) {
             console.error(error);
         }
-    }, ARB_CONFIG.pollInterval);
+    };
+
+    // Run first scan immediately
+    await runScan();
+
+    // Then start interval
+    setInterval(runScan, ARB_CONFIG.pollInterval);
 }
 
 module.exports = { startAgent, ARB_CONFIG };
