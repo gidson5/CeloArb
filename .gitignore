@@ -1,0 +1,11 @@
+# Environment — NEVER commit this
+.env
+
+# Node
+node_modules/
+
+# Build artifacts
+dist/
+artifacts/
+cache/
+deployment.json
