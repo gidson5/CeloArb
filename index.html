@@ -443,14 +443,18 @@
     'cUSD': { symbol: 'cUSD', address: '0x765DE816845861e75A25fCA122bb6898B8B1282a', decimals: 18, color: '#35d07f', balance: 500.00, price: 1.00 },
     'USDT': { symbol: 'USDT', address: '0x48065fbBE25f71C9282ddf5e1cD6D6A887483D5e', decimals: 6, color: '#26a17b', balance: 1000.00, price: 1.00 },
     'USDC': { symbol: 'USDC', address: '0xcebA9300f2b948710d2653dD7B07f33A8B32118C', decimals: 6, color: '#2775ca', balance: 250.00, price: 1.00 },
-    'CELO': { symbol: 'CELO', address: '0x471EcE3750Da237f93B8E339c536989b8978a438', decimals: 18, color: '#fbcc5c', balance: 340.50, price: 0.85 }
+    'CELO': { symbol: 'CELO', address: '0x471EcE3750Da237f93B8E339c536989b8978a438', decimals: 18, color: '#fbcc5c', balance: 340.50, price: 0.85 },
+    'stCELO': { symbol: 'stCELO', address: '0xC668583dcbDc9ae6FA3CE46462758188adfdfC24', decimals: 18, color: '#ff8a50', balance: 100.00, price: 0.90 },
+    'WETH': { symbol: 'WETH', address: '0xD221812de1BD094f35587EE8E174B07B6167D9Af', decimals: 18, color: '#627eea', balance: 0.5, price: 2500 },
+    'WBTC': { symbol: 'WBTC', address: '0xBAAB46E28388d2779e6E31Fd00cF0e5Ad95E327B', decimals: 8, color: '#f7931a', balance: 0.02, price: 65000 }
   };
 
   const PAIRS = [
+    { id: 'stCELO-CELO', label: 'stCELO / CELO', fee: 100, gas: 0.0006, tokens: ['stCELO', 'CELO'] },
     { id: 'cUSD-USDT', label: 'cUSD / USDT', fee: 3000, gas: 0.0008, tokens: ['cUSD', 'USDT'] },
-    { id: 'cUSD-USDC', label: 'cUSD / USDC', fee: 3000, gas: 0.0008, tokens: ['cUSD', 'USDC'] },
+    { id: 'CELO-ETH', label: 'CELO / WETH', fee: 3000, gas: 0.0012, tokens: ['CELO', 'WETH'] },
+    { id: 'CELO-BTC', label: 'CELO / WBTC', fee: 3000, gas: 0.0012, tokens: ['CELO', 'WBTC'] },
     { id: 'USDT-USDC', label: 'USDT / USDC', fee: 3000, gas: 0.0006, tokens: ['USDT', 'USDC'] },
-    { id: 'CELO-cUSD', label: 'CELO / cUSD', fee: 3000, gas: 0.0012, tokens: ['CELO', 'cUSD'] },
   ];
 
   let cumulativePnl = 0;
