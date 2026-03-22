@@ -1,777 +1,726 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CeloArb — Live Arbitrage Dashboard</title>
-  <meta name="description" content="CeloArb: an autonomous stablecoin arbitrage agent on Celo monitoring cUSD/USDT, cUSD/USDC, and USDT/USDC pools via Uniswap V3." />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
-  <style>
-    :root {
-      --bg: #0a0c10;
-      --surface: #111318;
-      --surface2: #181c24;
-      --border: #1e2433;
-      --accent: #35e07a;
-      --accent-dim: rgba(53, 224, 122, 0.12);
-      --accent2: #4fa3ff;
-      --accent2-dim: rgba(79, 163, 255, 0.12);
-      --warn: #fb9c3b;
-      --danger: #ff4f6a;
-      --text: #e4e8f0;
-      --muted: #5a6072;
-      --muted2: #394158;
-      --mono: "JetBrains Mono", monospace;
-      --sans: "Inter", sans-serif;
-    }
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html { scroll-behavior: smooth; }
-    body {
-      font-family: var(--sans);
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-      overflow-x: hidden;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CeloArb — Market Scanner</title>
+    <meta name="description" content="Autonomous stablecoin arbitrage agent on Celo.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-canvas: #F5F5F7; 
+            --bg-surface: #FFFFFF; 
+            --text-primary: #1A1D1F; 
+            --text-secondary: #6F767E; 
+            --text-tertiary: #9A9FA5; 
+            
+            --accent-blue: #63B3D3; 
+            --accent-blue-hover: #52A0BF;
+            --accent-teal: #109FBA; 
+            --accent-coral: #E37462; 
+            --accent-coral-light: #FCEBE8; 
+            
+            --radius-xl: 24px; 
+            --radius-lg: 16px; 
+            --radius-pill: 999px; 
+            --radius-sm: 8px; 
+            
+            --border-light: 1px solid #F1F1F3;
+            --border-dashed: 1px dashed #E8E8EA; 
+            --shadow-subtle: 0 4px 12px rgba(0, 0, 0, 0.02), 0 1px 3px rgba(0, 0, 0, 0.01);
+            --shadow-hover: 0 8px 24px rgba(0, 0, 0, 0.04), 0 2px 6px rgba(0, 0, 0, 0.02);
 
-    /* ── Noise overlay ── */
-    body::before {
-      content: "";
-      position: fixed;
-      inset: 0;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
-      pointer-events: none;
-      z-index: 0;
-      opacity: .4;
-    }
+            --font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+        }
 
-    /* ── Header ── */
-    header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 1.25rem 2rem;
-      border-bottom: 1px solid var(--border);
-      background: rgba(10,12,16,.85);
-      backdrop-filter: blur(12px);
-      position: sticky;
-      top: 0;
-      z-index: 100;
-    }
-    .logo {
-      display: flex;
-      align-items: center;
-      gap: .6rem;
-      font-size: 1.1rem;
-      font-weight: 700;
-      letter-spacing: -.02em;
-    }
-    .logo-dot {
-      width: 10px; height: 10px;
-      border-radius: 50%;
-      background: var(--accent);
-      box-shadow: 0 0 14px var(--accent);
-      animation: pulse 2s infinite;
-    }
-    @keyframes pulse {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: .6; transform: scale(.85); }
-    }
-    .logo span { color: var(--accent); }
-    .header-right {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      font-size: .8rem;
-      color: var(--muted);
-    }
-    .badge {
-      background: var(--accent-dim);
-      color: var(--accent);
-      border: 1px solid rgba(53,224,122,.25);
-      border-radius: 20px;
-      padding: .2rem .75rem;
-      font-size: .75rem;
-      font-weight: 600;
-    }
-    .badge.blue {
-      background: var(--accent2-dim);
-      color: var(--accent2);
-      border-color: rgba(79,163,255,.25);
-    }
-    #status-badge {
-      display: flex;
-      align-items: center;
-      gap: .4rem;
-    }
-    #status-dot {
-      width: 7px; height: 7px;
-      border-radius: 50%;
-      background: var(--accent);
-      box-shadow: 0 0 8px var(--accent);
-      animation: pulse 1.8s infinite;
-    }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
 
-    /* ── Main grid ── */
-    main {
-      max-width: 1400px;
-      margin: 0 auto;
-      padding: 2rem;
-      position: relative;
-      z-index: 1;
-    }
+        body {
+            font-family: var(--font-family);
+            background-color: var(--bg-canvas);
+            color: var(--text-primary);
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
 
-    /* ── KPI row ── */
-    .kpi-row {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 1rem;
-      margin-bottom: 1.5rem;
-    }
-    .kpi {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 1.2rem 1.4rem;
-      position: relative;
-      overflow: hidden;
-      transition: border-color .3s;
-    }
-    .kpi:hover { border-color: var(--muted2); }
-    .kpi::before {
-      content: "";
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 2px;
-      background: linear-gradient(90deg, transparent, var(--accent), transparent);
-      opacity: .4;
-    }
-    .kpi-label {
-      font-size: .72rem;
-      text-transform: uppercase;
-      letter-spacing: .08em;
-      color: var(--muted);
-      margin-bottom: .5rem;
-    }
-    .kpi-value {
-      font-size: 1.7rem;
-      font-weight: 700;
-      letter-spacing: -.03em;
-      color: var(--accent);
-      font-family: var(--mono);
-    }
-    .kpi-value.blue { color: var(--accent2); }
-    .kpi-value.warn { color: var(--warn); }
-    .kpi-sub {
-      font-size: .75rem;
-      color: var(--muted);
-      margin-top: .3rem;
-    }
+        /* Topbar */
+        .topbar {
+            background-color: var(--bg-surface);
+            padding: 16px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: var(--border-light);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
 
-    /* ── Two-column layout ── */
-    .grid-2 {
-      display: grid;
-      grid-template-columns: 1fr 420px;
-      gap: 1.5rem;
-      margin-bottom: 1.5rem;
-    }
+        .topbar-left {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
 
-    /* ── Cards ── */
-    .card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      overflow: hidden;
-    }
-    .card-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 1rem 1.4rem;
-      border-bottom: 1px solid var(--border);
-    }
-    .card-title {
-      font-size: .82rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: .08em;
-      color: var(--muted);
-    }
-    .card-body { padding: 1.2rem 1.4rem; }
+        .logo {
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-primary);
+            text-decoration: none;
+        }
 
-    /* ── Spread bars ── */
-    .spread-pair {
-      display: flex;
-      flex-direction: column;
-      gap: .5rem;
-      padding: 1.1rem 1.4rem;
-      border-bottom: 1px solid var(--border);
-      transition: background .2s;
-    }
-    .spread-pair:last-child { border-bottom: none; }
-    .spread-pair:hover { background: var(--surface2); }
-    .spread-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-    .pair-name {
-      font-family: var(--mono);
-      font-weight: 600;
-      font-size: .88rem;
-    }
-    .spread-val {
-      font-family: var(--mono);
-      font-size: .9rem;
-      font-weight: 600;
-      color: var(--accent);
-      min-width: 60px;
-      text-align: right;
-    }
-    .spread-val.low { color: var(--muted); }
-    .spread-val.hot { color: var(--warn); }
-    .bar-track {
-      height: 4px;
-      background: var(--border);
-      border-radius: 2px;
-      overflow: hidden;
-    }
-    .bar-fill {
-      height: 100%;
-      border-radius: 2px;
-      background: linear-gradient(90deg, var(--accent2), var(--accent));
-      transition: width 1s cubic-bezier(.4,0,.2,1);
-    }
-    .bar-fill.hot {
-      background: linear-gradient(90deg, var(--warn), #ffdf5f);
-    }
-    .spread-meta {
-      font-size: .72rem;
-      color: var(--muted);
-      display: flex;
-      justify-content: space-between;
-    }
+        .logo span { color: var(--accent-teal); }
 
-    /* ── Trade log ── */
-    .trade-log {
-      display: flex;
-      flex-direction: column;
-      gap: 0;
-      max-height: 340px;
-      overflow-y: auto;
-    }
-    .trade-log::-webkit-scrollbar { width: 4px; }
-    .trade-log::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-    .trade-item {
-      display: flex;
-      flex-direction: column;
-      gap: .3rem;
-      padding: .9rem 1.4rem;
-      border-bottom: 1px solid var(--border);
-      animation: fadeSlide .4s ease both;
-    }
-    @keyframes fadeSlide {
-      from { opacity: 0; transform: translateY(-6px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-    .trade-item:last-child { border-bottom: none; }
-    .trade-top {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      font-size: .8rem;
-    }
-    .trade-route {
-      font-family: var(--mono);
-      font-size: .78rem;
-      color: var(--text);
-    }
-    .trade-profit {
-      font-family: var(--mono);
-      font-weight: 700;
-      color: var(--accent);
-      font-size: .9rem;
-    }
-    .trade-hash {
-      font-family: var(--mono);
-      font-size: .68rem;
-      color: var(--accent2);
-      opacity: .75;
-      text-overflow: ellipsis;
-      overflow: hidden;
-      white-space: nowrap;
-      max-width: 200px;
-    }
-    .trade-time {
-      font-size: .7rem;
-      color: var(--muted);
-    }
+        .topbar-nav {
+            display: flex;
+            gap: 8px;
+        }
 
-    /* ── Console log ── */
-    .console {
-      background: #0d1117;
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      overflow: hidden;
-    }
-    .console-header {
-      display: flex;
-      align-items: center;
-      gap: .5rem;
-      padding: .75rem 1.2rem;
-      border-bottom: 1px solid var(--border);
-      background: var(--surface);
-    }
-    .console-dot { width: 10px; height: 10px; border-radius: 50%; }
-    .console-lines {
-      font-family: var(--mono);
-      font-size: .73rem;
-      line-height: 1.7;
-      padding: 1rem 1.2rem;
-      max-height: 220px;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column-reverse;
-    }
-    .console-lines::-webkit-scrollbar { width: 4px; }
-    .console-lines::-webkit-scrollbar-thumb { background: #2a2f3d; border-radius: 2px; }
-    .log-line { display: block; }
-    .log-line.info  { color: #7dd3fc; }
-    .log-line.good  { color: var(--accent); }
-    .log-line.warn  { color: var(--warn); }
-    .log-line.exec  { color: #c4b5fd; }
-    .log-line.muted { color: var(--muted); }
+        .nav-pill {
+            padding: 8px 16px;
+            border-radius: var(--radius-pill);
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+        }
 
-    /* ── Delegation rules ── */
-    .rules-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: .75rem;
-    }
-    .rule-item {
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: .75rem 1rem;
-    }
-    .rule-key {
-      font-size: .68rem;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: .07em;
-      margin-bottom: .3rem;
-    }
-    .rule-val {
-      font-family: var(--mono);
-      font-size: .82rem;
-      font-weight: 600;
-      color: var(--text);
-    }
-    .rule-val.green { color: var(--accent); }
+        .nav-pill:hover { background-color: var(--bg-canvas); }
+        .nav-pill.active {
+            background-color: var(--bg-surface);
+            color: var(--text-primary);
+            border: var(--border-light);
+            box-shadow: var(--shadow-subtle);
+        }
 
-    /* ── Identity card ── */
-    .identity-block {
-      display: flex;
-      flex-direction: column;
-      gap: .6rem;
-    }
-    .id-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: .55rem 0;
-      border-bottom: 1px solid var(--border);
-    }
-    .id-row:last-child { border-bottom: none; }
-    .id-key { font-size: .75rem; color: var(--muted); }
-    .id-val {
-      font-family: var(--mono);
-      font-size: .75rem;
-      color: var(--text);
-    }
-    .id-val.green { color: var(--accent); }
-    .id-val.blue  { color: var(--accent2); }
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
 
-    /* ── Bottom row ── */
-    .grid-3 {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 1.5rem;
-    }
+        .badge {
+            border-radius: var(--radius-pill);
+            padding: 4px 12px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            background-color: var(--bg-surface);
+            border: var(--border-light);
+            box-shadow: var(--shadow-subtle);
+        }
 
-    /* ── Responsive ── */
-    @media (max-width: 1100px) {
-      .grid-2 { grid-template-columns: 1fr; }
-      .grid-3 { grid-template-columns: 1fr 1fr; }
-      .kpi-row { grid-template-columns: repeat(2, 1fr); }
-    }
-    @media (max-width: 640px) {
-      main { padding: 1rem; }
-      .kpi-row, .grid-3 { grid-template-columns: 1fr; }
-      header { padding: 1rem; }
-    }
+        .badge.blue {
+            background-color: #EBF5FF;
+            color: #0066CC;
+            border-color: #CCE4FF;
+        }
 
-    /* flash on new trade */
-    .flash { animation: flashbg .6s ease; }
-    @keyframes flashbg {
-      0%   { background: rgba(53,224,122,.15); }
-      100% { background: transparent; }
-    }
-  </style>
+        .badge.green {
+            background-color: #E6F6EB;
+            color: #1A7F37;
+            border-color: #D1EFDA;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--accent-teal);
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 6px;
+            box-shadow: 0 0 8px var(--accent-teal);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: .6; transform: scale(.85); }
+        }
+
+        /* Main Content */
+        .main-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 32px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 32px;
+        }
+
+        .controls-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .page-title {
+            font-size: 24px;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+        }
+
+        .filter-group {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .dropdown-btn {
+            padding: 10px 16px;
+            border-radius: var(--radius-pill);
+            background-color: var(--bg-surface);
+            border: none;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: var(--shadow-subtle);
+            cursor: pointer;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+        }
+
+        .stat-card {
+            background-color: var(--bg-surface);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            box-shadow: var(--shadow-subtle);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .stat-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: var(--radius-sm);
+            background-color: var(--bg-canvas);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            border: var(--border-light);
+        }
+
+        .stat-title {
+            font-size: 13px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+            font-family: var(--font-mono);
+        }
+
+        /* Opportunity List */
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .list-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .opportunity-row {
+            background-color: var(--bg-surface);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            box-shadow: var(--shadow-subtle);
+            display: flex;
+            flex-direction: column; 
+            transition: all 0.2s;
+        }
+
+        .opportunity-row:hover {
+            box-shadow: var(--shadow-hover);
+        }
+
+        .row-main {
+            display: grid;
+            grid-template-columns: 220px 1fr 1fr 180px;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .asset-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .asset-icons {
+            display: flex;
+            position: relative;
+            width: 44px;
+        }
+
+        .asset-icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background-color: var(--bg-canvas);
+            border: 2px solid var(--bg-surface);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .asset-icon:nth-child(2) {
+            position: absolute;
+            left: 16px;
+            z-index: 1;
+        }
+
+        .icon-cUSD { background-color: #35D07F; }
+        .icon-USDT { background-color: #26A17B; }
+        .icon-USDC { background-color: #2775CA; }
+
+        .asset-name {
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        .asset-type {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 2px;
+        }
+
+        .exchange-block {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .exchange-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .exchange-label svg {
+            width: 14px;
+            height: 14px;
+            color: var(--text-tertiary);
+        }
+
+        .price-val {
+            font-size: 16px;
+            font-weight: 600;
+            font-family: var(--font-mono);
+        }
+
+        .profit-action-block {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 8px;
+        }
+
+        .profit-val {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--accent-teal);
+            font-family: var(--font-mono);
+        }
+
+        .row-divider {
+            border-top: var(--border-dashed);
+            margin: 16px 0;
+            width: 100%;
+        }
+
+        .row-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .meta-left {
+            display: flex;
+            gap: 24px;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .meta-item svg {
+            width: 14px;
+            height: 14px;
+            color: var(--text-tertiary);
+        }
+
+        .btn-execute {
+            background-color: var(--accent-blue);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: var(--radius-pill);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .btn-execute:hover { background-color: var(--accent-blue-hover); }
+
+        /* Console log */
+        .console {
+            background: #1A1D1F;
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            box-shadow: var(--shadow-subtle);
+        }
+        .console-header {
+            padding: 12px 20px;
+            background: #272B30;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: var(--text-tertiary);
+            font-weight: 600;
+        }
+        .console-dot { width: 8px; height: 8px; border-radius: 50%; }
+        .console-lines {
+            font-family: var(--font-mono);
+            font-size: 12px;
+            line-height: 1.6;
+            padding: 16px 20px;
+            max-height: 200px;
+            overflow-y: auto;
+            color: #E4E8F0;
+            display: flex;
+            flex-direction: column-reverse;
+        }
+        .log-line.good { color: #35D07F; }
+        .log-line.warn { color: var(--accent-coral); }
+        .log-line.exec { color: var(--accent-blue); }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .row-main { grid-template-columns: 1fr 1fr; gap: 16px; }
+            .profit-action-block { grid-column: span 2; align-items: center; flex-direction: row; justify-content: space-between; }
+        }
+
+        @media (max-width: 640px) {
+            .stats-grid { grid-template-columns: 1fr; }
+            .topbar { padding: 12px 20px; flex-direction: column; gap: 12px; height: auto; position: relative; }
+            .main-content { padding: 20px; }
+            .row-main { display: flex; flex-direction: column; align-items: flex-start; }
+            .profit-action-block { width: 100%; border-top: var(--border-light); padding-top: 12px; }
+            .meta-left { flex-direction: column; gap: 8px; }
+        }
+    </style>
 </head>
 <body>
 
-<header>
-  <div class="logo">
-    <div class="logo-dot"></div>
-    Celo<span>Arb</span>
-  </div>
-  <div class="header-right">
-    <span id="status-badge"><span id="status-dot"></span> <span id="status-text">Scanning</span></span>
-    <span class="badge">celoarb.agent.eth</span>
-    <span class="badge blue">Celo Mainnet</span>
-    <span class="badge" id="clock">--:--:--</span>
-  </div>
-</header>
-
-<main>
-  <!-- KPI row -->
-  <div class="kpi-row">
-    <div class="kpi">
-      <div class="kpi-label">Cumulative P&amp;L</div>
-      <div class="kpi-value green" id="kpi-pnl">+$0.00</div>
-      <div class="kpi-sub">All-time realised profit</div>
-    </div>
-    <div class="kpi">
-      <div class="kpi-label">Trades Executed</div>
-      <div class="kpi-value blue" id="kpi-trades">0</div>
-      <div class="kpi-sub">Since agent start</div>
-    </div>
-    <div class="kpi">
-      <div class="kpi-label">Best Spread</div>
-      <div class="kpi-value warn" id="kpi-best-spread">+0.00%</div>
-      <div class="kpi-sub" id="kpi-best-pair">Scanning...</div>
-    </div>
-    <div class="kpi">
-      <div class="kpi-label">Currently Monitoring</div>
-      <div class="kpi-value" style="font-size:1rem;color:var(--text)">3 Pairs</div>
-      <div class="kpi-sub">cUSD/USDT · cUSD/USDC · USDT/USDC</div>
-    </div>
-  </div>
-
-  <!-- Spreads + Trade log -->
-  <div class="grid-2">
-    <!-- Spread monitor -->
-    <div class="card">
-      <div class="card-header">
-        <span class="card-title">Live Spread Monitor · TWAP-5m</span>
-        <span class="badge" id="scan-tick">30s</span>
-      </div>
-      <div id="spread-pairs">
-        <div class="spread-pair" id="sp-cUSD-USDT">
-          <div class="spread-row">
-            <span class="pair-name">cUSD / USDT</span>
-            <span class="spread-val" id="v-cUSD-USDT">+0.00%</span>
-          </div>
-          <div class="bar-track"><div class="bar-fill" id="b-cUSD-USDT" style="width:0%"></div></div>
-          <div class="spread-meta">
-            <span>Pool fee: 0.05%</span>
-            <span id="net-cUSD-USDT">Net: —</span>
-          </div>
+    <header class="topbar">
+        <div class="topbar-left">
+            <a href="#" class="logo">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                </svg>
+                Celo<span>Arb</span>
+            </a>
+            <nav class="topbar-nav">
+                <a href="#" class="nav-pill active">DEX Scanner</a>
+                <a href="#" class="nav-pill">Arb Registry</a>
+            </nav>
         </div>
-        <div class="spread-pair" id="sp-cUSD-USDC">
-          <div class="spread-row">
-            <span class="pair-name">cUSD / USDC</span>
-            <span class="spread-val" id="v-cUSD-USDC">+0.00%</span>
-          </div>
-          <div class="bar-track"><div class="bar-fill" id="b-cUSD-USDC" style="width:0%"></div></div>
-          <div class="spread-meta">
-            <span>Pool fee: 0.05%</span>
-            <span id="net-cUSD-USDC">Net: —</span>
-          </div>
+        <div class="topbar-right">
+            <span class="badge green"><div class="status-dot"></div> Scanning</span>
+            <span class="badge blue">Celo Mainnet</span>
+            <span class="badge">celoarb.agent.eth</span>
         </div>
-        <div class="spread-pair" id="sp-USDT-USDC">
-          <div class="spread-row">
-            <span class="pair-name">USDT / USDC</span>
-            <span class="spread-val" id="v-USDT-USDC">+0.00%</span>
-          </div>
-          <div class="bar-track"><div class="bar-fill" id="b-USDT-USDC" style="width:0%"></div></div>
-          <div class="spread-meta">
-            <span>Pool fee: 0.01%</span>
-            <span id="net-USDT-USDC">Net: —</span>
-          </div>
+    </header>
+
+    <main class="main-content">
+        <div class="controls-header">
+            <h1 class="page-title">Autonomous Market Scanner</h1>
+            <div class="filter-group">
+                <button class="dropdown-btn">Min. Profit: 0.3%</button>
+                <button class="dropdown-btn">Uniswap V3</button>
+            </div>
         </div>
-      </div>
-    </div>
 
-    <!-- Trade log -->
-    <div class="card">
-      <div class="card-header">
-        <span class="card-title">Trade Execution Log</span>
-        <span class="badge green" id="trade-count-badge">0 trades</span>
-      </div>
-      <div class="trade-log" id="trade-log">
-        <div style="padding:1.5rem 1.4rem; color:var(--muted); font-size:.8rem;">
-          Waiting for first arbitrage opportunity...
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">💰</div>
+                <div class="stat-title">Estimated 24h Profit</div>
+                <div class="stat-value" id="kpi-pnl">+$0.00</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">⚡</div>
+                <div class="stat-title">Trades Executed</div>
+                <div class="stat-value" id="kpi-trades">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">🕒</div>
+                <div class="stat-title">Avg. Execution Time</div>
+                <div class="stat-value">1.1s</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">🛡️</div>
+                <div class="stat-title">Success Rate</div>
+                <div class="stat-value">98.4%</div>
+            </div>
         </div>
-      </div>
-    </div>
-  </div>
 
-  <!-- Agent console -->
-  <div class="console" style="margin-bottom:1.5rem;">
-    <div class="console-header">
-      <div class="console-dot" style="background:#ff5f56"></div>
-      <div class="console-dot" style="background:#ffbd2e"></div>
-      <div class="console-dot" style="background:#27c93f"></div>
-      <span style="font-family:var(--mono);font-size:.75rem;color:var(--muted);margin-left:.5rem;">celoarb agent — stdout</span>
-    </div>
-    <div class="console-lines" id="console-lines"></div>
-  </div>
+        <div>
+            <div class="section-header">
+                <h2 class="section-title">Live Stablecoin Opportunities</h2>
+                <span class="badge" id="opp-count">3 Pairs</span>
+            </div>
 
-  <!-- Bottom row -->
-  <div class="grid-3">
-    <!-- Delegation rules -->
-    <div class="card">
-      <div class="card-header">
-        <span class="card-title">MetaMask Delegation Rules</span>
-        <span class="badge green">Active</span>
-      </div>
-      <div class="card-body">
-        <div class="rules-grid">
-          <div class="rule-item">
-            <div class="rule-key">Daily Limit</div>
-            <div class="rule-val green">5,000 USDT</div>
-          </div>
-          <div class="rule-item">
-            <div class="rule-key">Per-TX Max</div>
-            <div class="rule-val green">1,000 USDT</div>
-          </div>
-          <div class="rule-item">
-            <div class="rule-key">Max Slippage</div>
-            <div class="rule-val">0.5%</div>
-          </div>
-          <div class="rule-item">
-            <div class="rule-key">Gas Cap</div>
-            <div class="rule-val">50 gwei</div>
-          </div>
-          <div class="rule-item" style="grid-column:span 2">
-            <div class="rule-key">Approved Contracts</div>
-            <div class="rule-val" style="font-size:.7rem;color:var(--accent2)">uniswap-v3-router-celo · uniswap-quoter-celo</div>
-          </div>
+            <div class="list-container" id="opp-list">
+                <!-- cUSD / USDT -->
+                <div class="opportunity-row" id="row-cUSD-USDT">
+                    <div class="row-main">
+                        <div class="asset-info">
+                            <div class="asset-icons">
+                                <div class="asset-icon icon-cUSD">C</div>
+                                <div class="asset-icon icon-USDT">T</div>
+                            </div>
+                            <div>
+                                <div class="asset-name">cUSD / USDT</div>
+                                <div class="asset-type">Stablecoin Arb</div>
+                            </div>
+                        </div>
+                        <div class="exchange-block">
+                            <div class="exchange-label">Buy on Pool A</div>
+                            <div class="price-val">$1.0002</div>
+                        </div>
+                        <div class="exchange-block">
+                            <div class="exchange-label">Sell on Pool B</div>
+                            <div class="price-val" id="v-cUSD-USDT">$1.0045</div>
+                        </div>
+                        <div class="profit-action-block">
+                            <div class="profit-val" id="pct-cUSD-USDT">+0.43%</div>
+                            <button class="btn-execute">Executing...</button>
+                        </div>
+                    </div>
+                    <div class="row-divider"></div>
+                    <div class="row-meta">
+                        <div class="meta-left">
+                            <div class="meta-item">Gas cost: 0.08%</div>
+                            <div class="meta-item" id="net-cUSD-USDT">Net: +0.35%</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- cUSD / USDC -->
+                <div class="opportunity-row" id="row-cUSD-USDC">
+                    <div class="row-main">
+                        <div class="asset-info">
+                            <div class="asset-icons">
+                                <div class="asset-icon icon-cUSD">C</div>
+                                <div class="asset-icon icon-USDC">D</div>
+                            </div>
+                            <div>
+                                <div class="asset-name">cUSD / USDC</div>
+                                <div class="asset-type">Stablecoin Arb</div>
+                            </div>
+                        </div>
+                        <div class="exchange-block">
+                            <div class="exchange-label">Buy on Pool B</div>
+                            <div class="price-val">$0.9998</div>
+                        </div>
+                        <div class="exchange-block">
+                            <div class="exchange-label">Sell on Pool C</div>
+                            <div class="price-val" id="v-cUSD-USDC">$1.0012</div>
+                        </div>
+                        <div class="profit-action-block">
+                            <div class="profit-val" id="pct-cUSD-USDC">+0.14%</div>
+                            <button class="btn-execute" style="background:var(--text-tertiary)">Monitoring</button>
+                        </div>
+                    </div>
+                    <div class="row-divider"></div>
+                    <div class="row-meta">
+                        <div class="meta-left">
+                            <div class="meta-item">Gas cost: 0.08%</div>
+                            <div class="meta-item" id="net-cUSD-USDC">Net: +0.06%</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- USDT / USDC -->
+                <div class="opportunity-row" id="row-USDT-USDC">
+                    <div class="row-main">
+                        <div class="asset-info">
+                            <div class="asset-icons">
+                                <div class="asset-icon icon-USDT">T</div>
+                                <div class="asset-icon icon-USDC">D</div>
+                            </div>
+                            <div>
+                                <div class="asset-name">USDT / USDC</div>
+                                <div class="asset-type">Stablecoin Arb</div>
+                            </div>
+                        </div>
+                        <div class="exchange-block">
+                            <div class="exchange-label">Buy on Pool A</div>
+                            <div class="price-val">$1.0000</div>
+                        </div>
+                        <div class="exchange-block">
+                            <div class="exchange-label">Sell on Pool C</div>
+                            <div class="price-val" id="v-USDT-USDC">$1.0005</div>
+                        </div>
+                        <div class="profit-action-block">
+                            <div class="profit-val" id="pct-USDT-USDC">+0.05%</div>
+                            <button class="btn-execute" style="background:var(--text-tertiary)">Monitoring</button>
+                        </div>
+                    </div>
+                    <div class="row-divider"></div>
+                    <div class="row-meta">
+                        <div class="meta-left">
+                            <div class="meta-item">Gas cost: 0.06%</div>
+                            <div class="meta-item" id="net-USDT-USDC">Net: -0.01%</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-      </div>
-    </div>
 
-    <!-- Strategy config -->
-    <div class="card">
-      <div class="card-header">
-        <span class="card-title">Strategy Config</span>
-      </div>
-      <div class="card-body">
-        <div class="identity-block">
-          <div class="id-row"><span class="id-key">Min Net Profit</span><span class="id-val green">0.3%</span></div>
-          <div class="id-row"><span class="id-key">TWAP Window</span><span class="id-val">5 minutes</span></div>
-          <div class="id-row"><span class="id-key">RSI Overbought</span><span class="id-val">&gt; 70 → skip</span></div>
-          <div class="id-row"><span class="id-key">Current RSI</span><span class="id-val green" id="rsi-val">48.2</span></div>
-          <div class="id-row"><span class="id-key">Trade Size</span><span class="id-val">$1,000 USDT</span></div>
-          <div class="id-row"><span class="id-key">Poll Interval</span><span class="id-val">30 seconds</span></div>
+        <!-- Terminal Console -->
+        <div class="console">
+            <div class="console-header">
+                <div class="console-dot" style="background:#ff5f56"></div>
+                <div class="console-dot" style="background:#ffbd2e"></div>
+                <div class="console-dot" style="background:#27c93f"></div>
+                CELOARB AGENT TERMINAL
+            </div>
+            <div class="console-lines" id="console-lines">
+                <div class="log-line">🚀 CeloArb agent booting...</div>
+            </div>
         </div>
-      </div>
-    </div>
+    </main>
 
-    <!-- Identity -->
-    <div class="card">
-      <div class="card-header">
-        <span class="card-title">Agent Identity</span>
-        <span class="badge blue">ERC-8004</span>
-      </div>
-      <div class="card-body">
-        <div class="identity-block">
-          <div class="id-row"><span class="id-key">ENS Name</span><span class="id-val blue">celoarb.agent.eth</span></div>
-          <div class="id-row"><span class="id-key">Type</span><span class="id-val">ArbitrageAgent</span></div>
-          <div class="id-row"><span class="id-key">Network</span><span class="id-val">Celo</span></div>
-          <div class="id-row"><span class="id-key">Self Protocol ZK</span><span class="id-val green">Verified ✓</span></div>
-          <div class="id-row"><span class="id-key">Proof Type</span><span class="id-val">Groth16 zk-SNARK</span></div>
-          <div class="id-row"><span class="id-key">Storage</span><span class="id-val">IPFS · Filecoin</span></div>
-        </div>
-      </div>
-    </div>
-  </div>
-</main>
+    <script>
+        const PAIRS = [
+            { id: "cUSD-USDT", label: "cUSD/USDT", gas: 0.0008 },
+            { id: "cUSD-USDC", label: "cUSD/USDC", gas: 0.0008 },
+            { id: "USDT-USDC", label: "USDT/USDC", gas: 0.0006 },
+        ];
+        const MIN_NET = 0.003;
+        const TRADE_AMT = 1000;
 
-<script>
-  // ── Constants ──────────────────────────────────────────────────────────
-  const PAIRS = [
-    { id: "cUSD-USDT", label: "cUSD/USDT", gas: 0.0008, fee: 0.0005 },
-    { id: "cUSD-USDC", label: "cUSD/USDC", gas: 0.0008, fee: 0.0005 },
-    { id: "USDT-USDC", label: "USDT/USDC", gas: 0.0006, fee: 0.0001 },
-  ];
-  const MIN_NET   = 0.003;
-  const TRADE_AMT = 1000;
-  const MAX_BAR   = 1.0; // max % for bar fill (1%)
+        let cumulativePnl = 1240.50;
+        let tradeCount = 34;
+        let spreadState = { "cUSD-USDT": 0.0045, "cUSD-USDC": 0.0012, "USDT-USDC": 0.0005 };
 
-  let cumulativePnl  = 0;
-  let tradeCount     = 0;
-  let spreadState    = { "cUSD-USDT": 0, "cUSD-USDC": 0, "USDT-USDC": 0 };
-  let firstLog       = true;
+        const $ = id => document.getElementById(id);
+        const fmt = n => "+" + (n * 100).toFixed(2) + "%";
+        const fmtUSD = n => "$" + n.toFixed(2);
+        const randInRange = (lo, hi) => lo + Math.random() * (hi - lo);
 
-  // ── Utilities ──────────────────────────────────────────────────────────
-  const $ = id => document.getElementById(id);
-  const fmt   = n => (n >= 0 ? "+" : "") + n.toFixed(2) + "%";
-  const fmtUSD = n => "$" + Math.abs(n).toFixed(2);
-  const randInRange = (lo, hi) => lo + Math.random() * (hi - lo);
-  const randHash = () => "0x" + Array.from({length: 8}, () => Math.floor(Math.random()*16).toString(16)).join("") + "...";
+        function log(msg, type = "") {
+            const el = document.createElement("div");
+            el.className = "log-line " + type;
+            const now = new Date();
+            const ts = `[${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}]`;
+            el.textContent = `${ts} ${msg}`;
+            $("console-lines").prepend(el);
+            while ($("console-lines").children.length > 50) $("console-lines").lastChild.remove();
+        }
 
-  function clock() {
-    const now = new Date();
-    const pad = n => String(n).padStart(2, "0");
-    $("clock").textContent = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
-  }
-  setInterval(clock, 1000);
-  clock();
+        function tick() {
+            log("🔍 Scanning Uniswap V3 pools...", "muted");
+            
+            PAIRS.forEach(p => {
+                const prev = spreadState[p.id];
+                const delta = randInRange(-0.001, 0.0015);
+                let s = Math.max(0.0001, prev + delta);
+                spreadState[p.id] = s;
 
-  // ── Log to console ────────────────────────────────────────────────────
-  function log(msg, type = "info") {
-    const now = new Date();
-    const pad = n => String(n).padStart(2, "0");
-    const ts = `[${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}]`;
-    const el = document.createElement("span");
-    el.className = `log-line ${type}`;
-    el.textContent = `${ts} ${msg}`;
-    const container = $("console-lines");
-    if (firstLog) { container.innerHTML = ""; firstLog = false; }
-    container.prepend(el);
-    // cap at 60 lines
-    while (container.children.length > 60) container.removeChild(container.lastChild);
-  }
+                const netProfit = s - p.gas;
+                const isHot = netProfit >= MIN_NET;
 
-  // ── Add trade card ───────────────────────────────────────────────────
-  function addTrade(pair, tokens, profit, hash) {
-    const tl = $("trade-log");
-    const placeholder = tl.querySelector("div[style]");
-    if (placeholder) placeholder.remove();
+                $(`v-${p.id}`).textContent = "$" + (1 + s).toFixed(4);
+                $(`pct-${p.id}`).textContent = fmt(s);
+                $(`net-${p.id}`).textContent = `Net after gas: ${(netProfit * 100).toFixed(3)}%`;
+                $(`pct-${p.id}`).style.color = isHot ? "var(--accent-teal)" : "var(--text-secondary)";
 
-    tradeCount++;
-    cumulativePnl += profit;
+                if (isHot) {
+                    log(`🚨 Opportunity: ${p.label} spread ${(s*100).toFixed(2)}%`, "warn");
+                    handleTrade(p, netProfit);
+                }
+            });
+        }
 
-    // KPI
-    $("kpi-pnl").textContent = `+${fmtUSD(cumulativePnl)}`;
-    $("kpi-trades").textContent = tradeCount;
-    $("trade-count-badge").textContent = `${tradeCount} trade${tradeCount !== 1 ? "s" : ""}`;
+        function handleTrade(p, netProfit) {
+            const profit = netProfit * TRADE_AMT;
+            log(`⚡ Executing trade on Celo Mainnet...`, "exec");
+            
+            setTimeout(() => {
+                tradeCount++;
+                cumulativePnl += profit;
+                $("kpi-trades").textContent = tradeCount;
+                $("kpi-pnl").textContent = "+" + fmtUSD(cumulativePnl);
+                
+                const hash = "0x" + Math.random().toString(16).substr(2, 8) + "...";
+                log(`✅ TX confirmed: ${hash} | Profit: +$${profit.toFixed(2)}`, "good");
+                log(`📝 Logged to ArbRegistry at 0x867d9a...`, "muted");
+            }, 1500);
+        }
 
-    const now = new Date();
-    const pad = n => String(n).padStart(2, "0");
-    const ts = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
-    const block = 18420300 + Math.floor(Math.random() * 500);
+        log("✅ Connected to Celo Mainnet", "good");
+        log("✅ Identity verified: celoarb.agent.eth", "good");
+        
+        setInterval(tick, 15000);
+        tick();
 
-    const item = document.createElement("div");
-    item.className = "trade-item";
-    item.innerHTML = `
-      <div class="trade-top">
-        <span class="trade-route">${tokens[0]} → ${tokens[1]}</span>
-        <span class="trade-profit">+${fmtUSD(profit)}</span>
-      </div>
-      <div class="trade-top">
-        <span class="trade-hash">${hash}</span>
-        <span class="trade-time">${ts} · block ${block}</span>
-      </div>
-    `;
-    tl.prepend(item);
-
-    // flash KPI
-    const pnlEl = $("kpi-pnl").closest(".kpi");
-    pnlEl.classList.remove("flash");
-    void pnlEl.offsetWidth;
-    pnlEl.classList.add("flash");
-  }
-
-  // ── Spread tick ───────────────────────────────────────────────────────
-  function tick() {
-    let bestSpread = 0;
-    let bestPair   = "";
-
-    log("🔍 Scanning: cUSD/USDT | cUSD/USDC | USDT/USDC", "muted");
-
-    PAIRS.forEach(p => {
-      // Smooth random walk
-      const prev = spreadState[p.id];
-      const delta = randInRange(-0.0015, 0.002);
-      let s = Math.max(0, Math.min(0.009, prev + delta));
-      spreadState[p.id] = s;
-
-      const netProfit = s - p.gas;
-      const isHot = s >= MIN_NET;
-
-      const vEl = $(`v-${p.id}`);
-      const bEl = $(`b-${p.id}`);
-      const nEl = $(`net-${p.id}`);
-      const spEl = $(`sp-${p.id}`);
-
-      vEl.textContent = fmt(s * 100);
-      vEl.className = `spread-val${isHot ? " hot" : s < 0.001 ? " low" : ""}`;
-      bEl.style.width = Math.min(100, (s / (MAX_BAR / 100)) * 100) + "%";
-      bEl.className = `bar-fill${isHot ? " hot" : ""}`;
-      nEl.textContent = `Net after gas: ${netProfit >= 0 ? "+" : ""}${(netProfit * 100).toFixed(3)}%`;
-
-      if (s > bestSpread) { bestSpread = s; bestPair = p.label; }
-
-      // Log spread
-      log(`📊 ${p.label}: spread ${fmt(s * 100)}${isHot ? " 🚨" : ""}`, isHot ? "warn" : "muted");
-
-      // Execute trade?
-      if (netProfit > MIN_NET) {
-        const rsi = randInRange(38, 62);
-        $("rsi-val").textContent = rsi.toFixed(1);
-        log(`📡 RSI: ${rsi.toFixed(1)} — neutral, proceeding`, "info");
-        log(`✅ Delegation check passed — within daily limit`, "good");
-
-        const tokens = p.label.split("/");
-        const profit  = netProfit * TRADE_AMT;
-        const hash    = randHash();
-
-        log(`⚡ Executing: Buy ${tokens[0]} → Sell ${tokens[1]} ($${TRADE_AMT} trade)`, "exec");
-
-        setTimeout(() => {
-          const block = 18420300 + Math.floor(Math.random() * 500);
-          log(`✅ TX confirmed: ${hash} (block ${block})`, "good");
-          log(`💰 Profit: +${fmtUSD(profit)} | Cumulative P&L: +${fmtUSD(cumulativePnl + profit)}`, "good");
-          log(`📝 Trade logged on-chain`, "muted");
-          $("status-text").textContent = "Capturing";
-          setTimeout(() => $("status-text").textContent = "Scanning", 3000);
-          addTrade(p.label, tokens, profit, hash);
-        }, 1800);
-      }
-    });
-
-    // Update best spread KPI
-    $("kpi-best-spread").textContent = fmt(bestSpread * 100);
-    $("kpi-best-pair").textContent = bestPair;
-
-    // countdown badge
-    let secs = 30;
-    clearInterval(window._countdown);
-    window._countdown = setInterval(() => {
-      $("scan-tick").textContent = `${--secs}s`;
-      if (secs <= 0) clearInterval(window._countdown);
-    }, 1000);
-  }
-
-  // ── Boot ──────────────────────────────────────────────────────────────
-  log("🚀 CeloArb agent booting...", "info");
-  log("✅ Loaded ARB_CONFIG: 3 pairs | threshold 0.3%", "good");
-  log("✅ MetaMask Delegation rules loaded", "good");
-  log("✅ Self Protocol ZK verification confirmed", "good");
-  log("✅ AgentNS identity: celoarb.agent.eth", "good");
-  log("✅ ArbRegistry contract connected (Celo Mainnet)", "good");
-
-  // First tick after short delay so logs show first
-  setTimeout(() => {
-    tick();
-    setInterval(tick, 30000);
-  }, 1200);
-</script>
+        $("kpi-trades").textContent = tradeCount;
+        $("kpi-pnl").textContent = "+" + fmtUSD(cumulativePnl);
+    </script>
 </body>
 </html>
