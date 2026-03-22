@@ -10,21 +10,36 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
   <style>
     :root {
+      /* Dark Theme (Default) */
       --bg: #0a0c10;
       --surface: #111318;
       --surface2: #181c24;
       --border: #1e2433;
+      --text: #e4e8f0;
+      --muted: #5a6072;
+      --muted2: #394158;
+
+      /* Shared */
       --accent: #35e07a;
       --accent-dim: rgba(53, 224, 122, 0.12);
       --accent2: #4fa3ff;
       --accent2-dim: rgba(79, 163, 255, 0.12);
       --warn: #fb9c3b;
       --danger: #ff4f6a;
-      --text: #e4e8f0;
-      --muted: #5a6072;
-      --muted2: #394158;
       --mono: "JetBrains Mono", monospace;
       --sans: "Inter", sans-serif;
+    }
+
+    body.light-theme {
+      --bg: #F5F5F7;
+      --surface: #FFFFFF;
+      --surface2: #F1F1F3;
+      --border: #E8E8EA;
+      --text: #1A1D1F;
+      --muted: #6F767E;
+      --muted2: #D1D1D3;
+      --accent-dim: rgba(53, 224, 122, 0.08);
+      --accent2-dim: rgba(79, 163, 255, 0.08);
     }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html { scroll-behavior: smooth; }
@@ -429,6 +444,9 @@
     Celo<span>Arb</span>
   </div>
   <div class="header-right">
+    <button id="theme-toggle" class="badge" style="cursor:pointer; background:var(--surface2); border-color:var(--border); display:flex; align-items:center; gap:6px;">
+      <span id="theme-icon">🌙</span> <span id="theme-text">Dark</span>
+    </button>
     <span id="status-badge"><span id="status-dot"></span> <span id="status-text">Scanning</span></span>
     <span class="badge">celoarb.agent.eth</span>
     <span class="badge blue">Celo Mainnet</span>
@@ -766,6 +784,34 @@
   log("✅ Self Protocol ZK verification confirmed", "good");
   log("✅ AgentNS identity: celoarb.agent.eth", "good");
   log("✅ ArbRegistry contract connected (Celo Mainnet)", "good");
+
+  // ── Theme Toggle ───────────────────────────────────────────────────────
+  const themeToggle = $("theme-toggle");
+  const themeIcon = $("theme-icon");
+  const themeText = $("theme-text");
+
+  function setTheme(isLight) {
+    if (isLight) {
+      document.body.classList.add("light-theme");
+      themeIcon.textContent = "☀️";
+      themeText.textContent = "Light";
+      localStorage.setItem("theme", "light");
+    } else {
+      document.body.classList.remove("light-theme");
+      themeIcon.textContent = "🌙";
+      themeText.textContent = "Dark";
+      localStorage.setItem("theme", "dark");
+    }
+  }
+
+  themeToggle.addEventListener("click", () => {
+    setTheme(!document.body.classList.contains("light-theme"));
+  });
+
+  // Load saved theme
+  if (localStorage.getItem("theme") === "light") {
+    setTheme(true);
+  }
 
   // First tick after short delay so logs show first
   setTimeout(() => {
