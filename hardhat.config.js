@@ -12,8 +12,8 @@ module.exports = {
   networks: {
     // Celo Mainnet via Alchemy
     celo: {
-      url: process.env.ALCHEMY_URL || "https://forno.celo.org",
-      accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : ["0x0000000000000000000000000000000000000000000000000000000000000001"],
+      url: (process.env.ALCHEMY_URL || "https://forno.celo.org").trim(),
+      accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY.trim()] : ["0x0000000000000000000000000000000000000000000000000000000000000001"],
       chainId: 42220,
     },
   },
