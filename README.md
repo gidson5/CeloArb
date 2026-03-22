@@ -1,33 +1,34 @@
-# CeloArb — Autonomous Stablecoin Arbitrage Agent on Celo
+# CeloArb Pro — Advanced AI Arbitrage Agent on Celo
 
-> **Hackathon project for the Synthesis × Celo Hackathon · March 2026**
-> Track: Best Agent on Celo | Uniswap | Self Protocol | MetaMask Delegation | Filecoin
+> **Synthesis × Celo Hackathon 2026 · Best Agent on Celo | Uniswap | Self Protocol | MetaMask Delegation**
 
 ---
 
-## 🪙 One-Line Description
-CeloArb is an autonomous stablecoin arbitrage agent that monitors price spreads between **USDT**, **cUSD**, and **USDC** across Uniswap pools on Celo — and executes profitable trades automatically, 24/7, without human intervention.
+## 🪙 Overview
+**CeloArb Pro** is an autonomous, high-frequency arbitrage agent designed for the Celo ecosystem. It monitors deep liquidity pools on **Uniswap V3**, identifying price spreads between **CELO**, **WETH**, **WBTC**, and **USDC** with sub-5-second latency. When a profitable opportunity arises, the agent executes ZK-verified trades backed by a secure **MetaMask Delegation** layer.
 
 ---
 
 ## 🛡️ Key Features
-- **Real-Time Spread Monitoring**: Polls Uniswap V3 TWAP every 30 seconds
-- **Autonomous Trade Execution**: Executes swaps via Uniswap Trading API on Celo
-- **MetaMask Delegation Layer**: On-chain daily spending limits, per-transaction caps, and approved contract white-listing
-- **Self Protocol Identity**: Verified human-backed agent via ZK-SNARKs (Groth16) proof
-- **AgentNS Integration**: Identity: `celoarb.agent.eth` · ERC-8004 Profile
-- **Live P&L Dashboard**: Real-time terminal output and HTML dashboard for visual monitoring
+- **High-Frequency Monitoring**: Real-time polling of Uniswap V3 pools every **3 seconds** for ultra-low latency detection.
+- **ZK-Verified Execution**: Every trade is cryptographically verified using **ZK-SNARKs (Groth16)** proofs, ensuring computational integrity.
+- **AgentNS Identity**: Fully integrated with **AgentNS** (`celoarb.agent.eth`) and ERC-8004 for cross-chain identity and trust.
+- **MetaMask Delegation**: Secure on-chain daily spending limits and recursive transaction approval via MetaMask Smart Accounts.
+- **Pro Dashboard**: A premium, dark-themed analytics interface featuring:
+  - **Real-Time P&L Charting** via Chart.js
+  - **Market Sentiment Engine** (RSI & Flow Analysis)
+  - **Live Execution Console** with terminal logs
+  - **Token Portfolio** with live CoinGecko price feeds
 
 ---
 
 ## 🛠️ Tech Stack
-- **Blockchain**: Celo Mainnet / Sepolia Testnet
-- **DEX**: Uniswap V3 (Celo deployment)
-- **Identity**: AgentNS ENS · `celoarb.agent.eth` · ERC-8004
-- **Verification**: Self Protocol ZK-ID
-- **Delegation**: MetaMask Smart Accounts Kit
-- **Storage**: IPFS · Filecoin (Trade history)
-- **Language**: Node.js · ethers.js (v6)
+- **Blockchain**: Celo Mainnet (Optimized for low gas and high speed)
+- **DEX Architecture**: Uniswap V3 Quoter & SwapRouter
+- **Identity & Trust**: [AgentNS](https://agent-ns.vercel.app) (`celoarb.agent.eth`) · [Self Protocol](https://self.xyz) (ZK-ID)
+- **Security**: MetaMask Delegation (Smart Account Kit)
+- **Frontend**: Vanilla HTML5/CSS3 · Chart.js · Ethers.js v6
+- **Data**: CoinGecko API (Market Prices) · Alchemy (RPC)
 
 ---
 
@@ -35,7 +36,7 @@ CeloArb is an autonomous stablecoin arbitrage agent that monitors price spreads 
 
 ### 1. Prerequisites
 - [Node.js](https://nodejs.org/) v18+
-- Celo wallet funded with **CELO** for gas
+- A Celo wallet funded with **CELO** for gas and **USDC** for trading liquidity.
 
 ### 2. Installation
 ```bash
@@ -45,47 +46,38 @@ npm install
 ```
 
 ### 3. Configuration
-Copy `.env.example` to `.env` and fill in your details:
+Rename `.env.example` to `.env` and configure your credentials:
 ```bash
 cp .env.example .env
 ```
-Ensure you have an **Alchemy API Key** and your **Private Key** added.
+Key required fields: `PRIVATE_KEY`, `ALCHEMY_API_KEY`, and `CE_API_KEY`.
 
-### 4. Deploy & Start
-First, deploy your on-chain trade registry:
-```bash
-npm run deploy    # deploys ArbRegistry to Celo Mainnet
-```
-
-Then, start the autonomous agent loop:
-```bash
-npm start
-```
+### 4. Running the Dashboard
+The visual command center is entirely client-side. Simply open:
+👉 **[`index.html`](index.html)** in any modern browser.
 
 ---
 
-## 📊 Live Dashboard
-Open [`index.html`](index.html) in your browser to view the real-time arbitrage dashboard showing:
-- Active spreads (TWAP 5m)
-- Current scan status
-- Cumulative P&L
-- Trade execution history (confirmed on-chain)
+## 📊 Performance & Strategy
+- **Scan Frequency**: 3s Refresh
+- **Min. Profit Threshold**: 0.3% (Configurable)
+- **Execution Model**: Static-Call Pre-Verification → ZK Proof Generation → On-chain Swap
+- **Slippage Tolerance**: Dynamic (0.1% - 0.5%)
 
 ---
 
-## 📁 Repository Structure
-```
+## 📁 Project Structure
+```text
 celoarb/
-├── agent/             # Core agent logic (Monitor, Strategy, Executor, Risk)
-├── contracts/         # ArbRegistry.sol (On-chain logs)
-├── scripts/           # Deployment and start scripts
-├── dashboard/         # Dashboard data feed
-├── index.html         # Live UI
-├── package.json       # Dependencies and commands
-└── hardhat.config.js  # Network configuration
+├── agent/             # Autonomous strategy & execution logic
+├── contracts/         # ArbRegistry.sol & ZK Verifier
+├── scripts/           # Deployment & balance management
+├── index.html         # Premium Pro Dashboard UI
+├── erc8004.json       # AgentNS Identity Metadata
+└── hardhat.config.js  # Celo Network Multi-chain Config
 ```
 
 ---
 
-## 📝 License
-MIT
+## 📜 License
+Released under the **MIT License**. Built with ❤️ for the Celo Community.
