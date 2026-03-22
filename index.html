@@ -467,6 +467,24 @@
   const provider = new ethers.JsonRpcProvider(RPC_URL);
   const quoter = new ethers.Contract(QUOTER_ADDR, QUOTER_ABI, provider);
 
+  async function fetchMarketPrices() {
+    try {
+      const ids = "celo,staked-celo,ethereum,bitcoin";
+      const resp = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd`);
+      const data = await resp.json();
+      
+      TOKENS.CELO.price = data['celo'].usd;
+      TOKENS.stCELO.price = data['staked-celo'].usd;
+      TOKENS.WETH.price = data['ethereum'].usd;
+      TOKENS.WBTC.price = data['bitcoin'].usd;
+      
+      log("Market prices updated from CoinGecko", "muted");
+      updatePortfolioUI();
+    } catch (e) {
+      console.warn("Market price fetch failed", e);
+    }
+  }
+
   async function getQuote(tokenInKey, tokenOutKey, fee, amount = "10") {
     try {
       const tIn = TOKENS[tokenInKey];
@@ -644,8 +662,8 @@
     }
 
     log('Scanning pools for Round-Trip Arbitrage opportunities...', '');
+    await fetchMarketPrices();
     let best = { val: -1, pair: '' };
-    const tbody = $('pool-body');
     tbody.innerHTML = '';
 
     for (const p of PAIRS) {
@@ -723,6 +741,7 @@
     $('scan-timer').textContent = `Next scan in ${secondsLeft}s`;
   }, 1000);
 
+  fetchMarketPrices();
   tick();
   updatePortfolioUI();
 
