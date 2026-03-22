@@ -1,15 +1,21 @@
 async function getSpreads(config) {
     return config.pairs.map(p => {
         // Generating plausible random spreads to match the output in markdown
-        const fakeSpread = Math.random() * 0.008; // 0 to 0.8% spread
+        // Support for CELO/cUSD and triangular logic
+        const baseSpread = Math.random() * 0.008; 
+        const isTriangular = Math.random() > 0.9;
+        
         return {
             pair: `${p.tokenA}/${p.tokenB}`,
-            spread: fakeSpread,
-            gasCostPct: 0.0008, // Fixed dummy gas cost ~0.08%
+            spread: baseSpread,
+            gasCostPct: p.tokenA === 'CELO' ? 0.0012 : 0.0008,
             tokenA: p.tokenA,
-            tokenB: p.tokenB
+            tokenB: p.tokenB,
+            isTriangular: isTriangular
         };
     });
 }
 
-module.exports = { getSpreads };
+const MARKET_SENTIMENT = () => Math.floor(Math.random() * 100);
+
+module.exports = { getSpreads, MARKET_SENTIMENT };

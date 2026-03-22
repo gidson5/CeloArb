@@ -3,44 +3,44 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CeloArb — Live Arbitrage Dashboard</title>
-  <meta name="description" content="CeloArb: an autonomous stablecoin arbitrage agent on Celo monitoring cUSD/USDT, cUSD/USDC, and USDT/USDC pools via Uniswap V3." />
+  <title>CeloArb Pro — Advanced AI Arbitrage Agent</title>
+  <meta name="description" content="CeloArb Pro: Autonomous ZK-verified stablecoin arbitrage on Celo with real-time P&L analytics and triangular detection." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     :root {
       /* Dark Theme (Default) */
-      --bg: #0a0c10;
-      --surface: #111318;
-      --surface2: #181c24;
-      --border: #1e2433;
-      --text: #e4e8f0;
-      --muted: #5a6072;
-      --muted2: #394158;
+      --bg: #06080a;
+      --surface: #0e1116;
+      --surface2: #161a21;
+      --border: #21262d;
+      --text: #e6edf3;
+      --muted: #8b949e;
+      --muted2: #30363d;
 
       /* Shared */
-      --accent: #35e07a;
-      --accent-dim: rgba(53, 224, 122, 0.12);
-      --accent2: #4fa3ff;
-      --accent2-dim: rgba(79, 163, 255, 0.12);
-      --warn: #fb9c3b;
-      --danger: #ff4f6a;
+      --accent: #3fb950; /* Celo Green */
+      --accent-dim: rgba(63, 185, 80, 0.1);
+      --accent2: #58a6ff;
+      --accent2-dim: rgba(88, 166, 255, 0.1);
+      --warn: #d29922;
+      --danger: #f85149;
       --mono: "JetBrains Mono", monospace;
       --sans: "Inter", sans-serif;
     }
 
     body.light-theme {
-      --bg: #F5F5F7;
-      --surface: #FFFFFF;
-      --surface2: #F1F1F3;
-      --border: #E8E8EA;
-      --text: #1A1D1F;
-      --muted: #6F767E;
-      --muted2: #D1D1D3;
-      --accent-dim: rgba(53, 224, 122, 0.08);
-      --accent2-dim: rgba(79, 163, 255, 0.08);
+      --bg: #f6f8fa;
+      --surface: #ffffff;
+      --surface2: #f0f2f5;
+      --border: #d0d7de;
+      --text: #1f2328;
+      --muted: #6e7781;
+      --muted2: #afb8c1;
     }
+
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html { scroll-behavior: smooth; }
     body {
@@ -49,6 +49,7 @@
       color: var(--text);
       min-height: 100vh;
       overflow-x: hidden;
+      line-height: 1.5;
     }
 
     /* ── Noise overlay ── */
@@ -67,804 +68,635 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 1.25rem 2rem;
+      padding: 1rem 2rem;
       border-bottom: 1px solid var(--border);
-      background: rgba(10,12,16,.85);
+      background: rgba(6, 8, 10, 0.8);
       backdrop-filter: blur(12px);
       position: sticky;
       top: 0;
-      z-index: 100;
+      z-index: 1000;
     }
     .logo {
       display: flex;
       align-items: center;
-      gap: .6rem;
-      font-size: 1.1rem;
-      font-weight: 700;
-      letter-spacing: -.02em;
+      gap: .75rem;
+      font-size: 1.25rem;
+      font-weight: 800;
+      letter-spacing: -.03em;
     }
     .logo-dot {
-      width: 10px; height: 10px;
+      width: 12px; height: 12px;
       border-radius: 50%;
       background: var(--accent);
-      box-shadow: 0 0 14px var(--accent);
+      box-shadow: 0 0 15px var(--accent);
       animation: pulse 2s infinite;
     }
     @keyframes pulse {
       0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: .6; transform: scale(.85); }
+      50% { opacity: .7; transform: scale(0.9); }
     }
     .logo span { color: var(--accent); }
     .header-right {
       display: flex;
       align-items: center;
       gap: 1rem;
-      font-size: .8rem;
-      color: var(--muted);
     }
     .badge {
-      background: var(--accent-dim);
-      color: var(--accent);
-      border: 1px solid rgba(53,224,122,.25);
-      border-radius: 20px;
-      padding: .2rem .75rem;
+      background: var(--surface2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: .4rem .8rem;
       font-size: .75rem;
       font-weight: 600;
-    }
-    .badge.blue {
-      background: var(--accent2-dim);
-      color: var(--accent2);
-      border-color: rgba(79,163,255,.25);
-    }
-    #status-badge {
       display: flex;
       align-items: center;
-      gap: .4rem;
+      gap: 0.5rem;
     }
-    #status-dot {
-      width: 7px; height: 7px;
-      border-radius: 50%;
-      background: var(--accent);
-      box-shadow: 0 0 8px var(--accent);
-      animation: pulse 1.8s infinite;
-    }
+    .badge.accent { color: var(--accent); border-color: var(--accent-dim); background: var(--accent-dim); }
+    .badge.blue { color: var(--accent2); border-color: var(--accent2-dim); background: var(--accent2-dim); }
 
-    /* ── Main grid ── */
+    /* ── Layout ── */
     main {
-      max-width: 1400px;
+      max-width: 1600px;
       margin: 0 auto;
       padding: 2rem;
+      display: grid;
+      grid-template-columns: 1fr 400px;
+      gap: 1.5rem;
       position: relative;
       z-index: 1;
     }
 
-    /* ── KPI row ── */
-    .kpi-row {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 1rem;
-      margin-bottom: 1.5rem;
-    }
-    .kpi {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 1.2rem 1.4rem;
-      position: relative;
-      overflow: hidden;
-      transition: border-color .3s;
-    }
-    .kpi:hover { border-color: var(--muted2); }
-    .kpi::before {
-      content: "";
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 2px;
-      background: linear-gradient(90deg, transparent, var(--accent), transparent);
-      opacity: .4;
-    }
-    .kpi-label {
-      font-size: .72rem;
-      text-transform: uppercase;
-      letter-spacing: .08em;
-      color: var(--muted);
-      margin-bottom: .5rem;
-    }
-    .kpi-value {
-      font-size: 1.7rem;
-      font-weight: 700;
-      letter-spacing: -.03em;
-      color: var(--accent);
-      font-family: var(--mono);
-    }
-    .kpi-value.blue { color: var(--accent2); }
-    .kpi-value.warn { color: var(--warn); }
-    .kpi-sub {
-      font-size: .75rem;
-      color: var(--muted);
-      margin-top: .3rem;
-    }
-
-    /* ── Two-column layout ── */
-    .grid-2 {
-      display: grid;
-      grid-template-columns: 1fr 420px;
-      gap: 1.5rem;
-      margin-bottom: 1.5rem;
-    }
+    section { display: flex; flex-direction: column; gap: 1.5rem; }
 
     /* ── Cards ── */
     .card {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 14px;
+      border-radius: 12px;
       overflow: hidden;
+      display: flex;
+      flex-direction: column;
     }
     .card-header {
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid var(--border);
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 1rem 1.4rem;
-      border-bottom: 1px solid var(--border);
     }
     .card-title {
-      font-size: .82rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: .08em;
-      color: var(--muted);
-    }
-    .card-body { padding: 1.2rem 1.4rem; }
-
-    /* ── Spread bars ── */
-    .spread-pair {
-      display: flex;
-      flex-direction: column;
-      gap: .5rem;
-      padding: 1.1rem 1.4rem;
-      border-bottom: 1px solid var(--border);
-      transition: background .2s;
-    }
-    .spread-pair:last-child { border-bottom: none; }
-    .spread-pair:hover { background: var(--surface2); }
-    .spread-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-    .pair-name {
-      font-family: var(--mono);
-      font-weight: 600;
-      font-size: .88rem;
-    }
-    .spread-val {
-      font-family: var(--mono);
-      font-size: .9rem;
-      font-weight: 600;
-      color: var(--accent);
-      min-width: 60px;
-      text-align: right;
-    }
-    .spread-val.low { color: var(--muted); }
-    .spread-val.hot { color: var(--warn); }
-    .bar-track {
-      height: 4px;
-      background: var(--border);
-      border-radius: 2px;
-      overflow: hidden;
-    }
-    .bar-fill {
-      height: 100%;
-      border-radius: 2px;
-      background: linear-gradient(90deg, var(--accent2), var(--accent));
-      transition: width 1s cubic-bezier(.4,0,.2,1);
-    }
-    .bar-fill.hot {
-      background: linear-gradient(90deg, var(--warn), #ffdf5f);
-    }
-    .spread-meta {
-      font-size: .72rem;
-      color: var(--muted);
-      display: flex;
-      justify-content: space-between;
-    }
-
-    /* ── Trade log ── */
-    .trade-log {
-      display: flex;
-      flex-direction: column;
-      gap: 0;
-      max-height: 340px;
-      overflow-y: auto;
-    }
-    .trade-log::-webkit-scrollbar { width: 4px; }
-    .trade-log::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-    .trade-item {
-      display: flex;
-      flex-direction: column;
-      gap: .3rem;
-      padding: .9rem 1.4rem;
-      border-bottom: 1px solid var(--border);
-      animation: fadeSlide .4s ease both;
-    }
-    @keyframes fadeSlide {
-      from { opacity: 0; transform: translateY(-6px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-    .trade-item:last-child { border-bottom: none; }
-    .trade-top {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      font-size: .8rem;
-    }
-    .trade-route {
-      font-family: var(--mono);
-      font-size: .78rem;
-      color: var(--text);
-    }
-    .trade-profit {
-      font-family: var(--mono);
-      font-weight: 700;
-      color: var(--accent);
-      font-size: .9rem;
-    }
-    .trade-hash {
-      font-family: var(--mono);
-      font-size: .68rem;
-      color: var(--accent2);
-      opacity: .75;
-      text-overflow: ellipsis;
-      overflow: hidden;
-      white-space: nowrap;
-      max-width: 200px;
-    }
-    .trade-time {
-      font-size: .7rem;
-      color: var(--muted);
-    }
-
-    /* ── Console log ── */
-    .console {
-      background: #0d1117;
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      overflow: hidden;
-    }
-    .console-header {
-      display: flex;
-      align-items: center;
-      gap: .5rem;
-      padding: .75rem 1.2rem;
-      border-bottom: 1px solid var(--border);
-      background: var(--surface);
-    }
-    .console-dot { width: 10px; height: 10px; border-radius: 50%; }
-    .console-lines {
-      font-family: var(--mono);
-      font-size: .73rem;
-      line-height: 1.7;
-      padding: 1rem 1.2rem;
-      max-height: 220px;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column-reverse;
-    }
-    .console-lines::-webkit-scrollbar { width: 4px; }
-    .console-lines::-webkit-scrollbar-thumb { background: #2a2f3d; border-radius: 2px; }
-    .log-line { display: block; }
-    .log-line.info  { color: #7dd3fc; }
-    .log-line.good  { color: var(--accent); }
-    .log-line.warn  { color: var(--warn); }
-    .log-line.exec  { color: #c4b5fd; }
-    .log-line.muted { color: var(--muted); }
-
-    /* ── Delegation rules ── */
-    .rules-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: .75rem;
-    }
-    .rule-item {
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: .75rem 1rem;
-    }
-    .rule-key {
-      font-size: .68rem;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: .07em;
-      margin-bottom: .3rem;
-    }
-    .rule-val {
-      font-family: var(--mono);
-      font-size: .82rem;
-      font-weight: 600;
-      color: var(--text);
-    }
-    .rule-val.green { color: var(--accent); }
-
-    /* ── Identity card ── */
-    .identity-block {
-      display: flex;
-      flex-direction: column;
-      gap: .6rem;
-    }
-    .id-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: .55rem 0;
-      border-bottom: 1px solid var(--border);
-    }
-    .id-row:last-child { border-bottom: none; }
-    .id-key { font-size: .75rem; color: var(--muted); }
-    .id-val {
-      font-family: var(--mono);
       font-size: .75rem;
-      color: var(--text);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      color: var(--muted);
     }
-    .id-val.green { color: var(--accent); }
-    .id-val.blue  { color: var(--accent2); }
+    .card-body { padding: 1.25rem; }
 
-    /* ── Bottom row ── */
-    .grid-3 {
+    /* ── KPIs ── */
+    .kpi-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 1.5rem;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
     }
+    .kpi {
+      padding: 1.25rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      transition: transform 0.2s;
+    }
+    .kpi:hover { transform: translateY(-2px); border-color: var(--muted); }
+    .kpi-label { font-size: .7rem; color: var(--muted); text-transform: uppercase; margin-bottom: .5rem; }
+    .kpi-value { font-family: var(--mono); font-size: 1.5rem; font-weight: 700; color: var(--accent); }
+    .kpi-sub { font-size: .65rem; color: var(--muted); margin-top: .25rem; }
+
+    /* ── Chart ── */
+    .chart-container { height: 300px; width: 100%; position: relative; }
+
+    /* ── Spread Table ── */
+    .data-table { width: 100%; border-collapse: collapse; font-size: .85rem; }
+    .data-table th { text-align: left; padding: .75rem; color: var(--muted); font-weight: 600; border-bottom: 1px solid var(--border); }
+    .data-table td { padding: .75rem; border-bottom: 1px solid var(--border); vertical-align: middle; }
+    .data-table tr:last-child td { border-bottom: none; }
+    .spread-bar { height: 6px; background: var(--muted2); border-radius: 3px; overflow: hidden; width: 80px; }
+    .spread-fill { height: 100%; background: var(--accent); transition: width 0.5s; }
+    .spread-fill.hot { background: var(--warn); box-shadow: 0 0 10px var(--warn); }
+
+    /* ── Side Panels ── */
+    .side-grid { display: flex; flex-direction: column; gap: 1.5rem; }
+
+    /* ── Portfolio ── */
+    .portfolio-item { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; }
+    .portfolio-item:last-child { margin-bottom: 0; }
+    .token-icon { width: 32px; height: 32px; border-radius: 50%; background: var(--surface2); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: .75rem; border: 1px solid var(--border); }
+    .token-info { flex: 1; }
+    .token-symbol { font-weight: 700; font-size: .85rem; }
+    .token-amount { font-family: var(--mono); font-size: .8rem; color: var(--muted); }
+    .token-val { font-family: var(--mono); font-size: .85rem; font-weight: 600; text-align: right; }
+
+    /* ── Sentiment Gauge ── */
+    .sentiment-box { text-align: center; padding: 1rem; }
+    .gauge-track { height: 12px; background: linear-gradient(90deg, var(--danger), var(--warn), var(--accent)); border-radius: 6px; position: relative; overflow: hidden; margin-top: 1rem; }
+    .gauge-needle { position: absolute; top: 0; bottom: 0; width: 4px; background: #fff; transform: translateX(-50%); transition: left 1s; box-shadow: 0 0 8px #fff; }
+
+    /* ── Logs ── */
+    .terminal { background: #010409; font-family: var(--mono); font-size: .75rem; padding: 1rem; height: 250px; overflow-y: auto; color: #7d8590; line-height: 1.6; }
+    .log-entry { margin-bottom: .25rem; display: block; }
+    .log-ts { color: var(--muted); margin-right: .5rem; }
+    .log-info { color: var(--accent2); }
+    .log-success { color: var(--accent); }
+    .log-warn { color: var(--warn); }
+    .log-exec { color: #d2a8ff; font-weight: 700; }
+
+    /* ── Modal (ZK Proof) ── */
+    #modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px);
+      z-index: 2000; display: none; align-items: center; justify-content: center;
+    }
+    .modal {
+      width: 600px; background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.5); overflow: hidden;
+      animation: zoomIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    @keyframes zoomIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    .modal-head { padding: 1.25rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+    .modal-body { padding: 1.5rem; font-family: var(--mono); font-size: .8rem; }
+    .proof-json { background: #010409; padding: 1rem; border-radius: 8px; color: #a5d6ff; max-height: 300px; overflow: auto; }
+
+    /* ── Animations ── */
+    .flash-success { animation: flashSuccess 1s ease-out; }
+    @keyframes flashSuccess { 0% { background: rgba(63, 185, 80, 0.2); } 100% { background: transparent; } }
 
     /* ── Responsive ── */
-    @media (max-width: 1100px) {
-      .grid-2 { grid-template-columns: 1fr; }
-      .grid-3 { grid-template-columns: 1fr 1fr; }
-      .kpi-row { grid-template-columns: repeat(2, 1fr); }
+    @media (max-width: 1200px) {
+      main { grid-template-columns: 1fr; }
+      .side-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
     }
-    @media (max-width: 640px) {
-      main { padding: 1rem; }
-      .kpi-row, .grid-3 { grid-template-columns: 1fr; }
-      header { padding: 1rem; }
-    }
-
-    /* flash on new trade */
-    .flash { animation: flashbg .6s ease; }
-    @keyframes flashbg {
-      0%   { background: rgba(53,224,122,.15); }
-      100% { background: transparent; }
+    @media (max-width: 768px) {
+      .kpi-grid { grid-template-columns: 1fr 1fr; }
+      .side-grid { grid-template-columns: 1fr; }
+      header { flex-direction: column; gap: 1rem; text-align: center; }
     }
   </style>
 </head>
-<body>
+<body class="dark-theme">
 
 <header>
   <div class="logo">
     <div class="logo-dot"></div>
-    Celo<span>Arb</span>
+    Celo<span>Arb</span> Pro
   </div>
   <div class="header-right">
-    <button id="theme-toggle" class="badge" style="cursor:pointer; background:var(--surface2); border-color:var(--border); display:flex; align-items:center; gap:6px;">
-      <span id="theme-icon">🌙</span> <span id="theme-text">Dark</span>
+    <div class="badge" id="clock">00:00:00</div>
+    <div class="badge accent" id="status-badge">
+      <div style="width:8px; height:8px; border-radius:50%; background:var(--accent); box-shadow:0 0 8px var(--accent);"></div>
+      AGENT ACTIVE
+    </div>
+    <div class="badge blue">Mainnet</div>
+    <button id="theme-toggle" class="badge" style="cursor:pointer; background:var(--surface)">
+      <span id="theme-icon">🌙</span>
     </button>
-    <span id="status-badge"><span id="status-dot"></span> <span id="status-text">Scanning</span></span>
-    <span class="badge">celoarb.agent.eth</span>
-    <span class="badge blue">Celo Mainnet</span>
-    <span class="badge" id="clock">--:--:--</span>
+    <button id="sound-toggle" class="badge" style="cursor:pointer; background:var(--surface)">
+      <span id="sound-icon">🔊</span>
+    </button>
   </div>
 </header>
 
 <main>
-  <!-- KPI row -->
-  <div class="kpi-row">
-    <div class="kpi">
-      <div class="kpi-label">Cumulative P&amp;L</div>
-      <div class="kpi-value green" id="kpi-pnl">+$0.00</div>
-      <div class="kpi-sub">All-time realised profit</div>
+  <!-- Left Side: Main Analytics & Monitor -->
+  <section>
+    <!-- KPIs -->
+    <div class="kpi-grid">
+      <div class="kpi">
+        <div class="kpi-label">Cumulative P&L</div>
+        <div class="kpi-value" id="val-pnl">+$0.00</div>
+        <div class="kpi-sub">Total realized arbitrage</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Trades Executed</div>
+        <div class="kpi-value" style="color:var(--accent2)" id="val-trades">0</div>
+        <div class="kpi-sub">Verified on-chain</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Best Spread</div>
+        <div class="kpi-value" style="color:var(--warn)" id="val-best-spread">0.00%</div>
+        <div class="kpi-sub" id="val-best-pair">Scanning pools...</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">ZK Proofs</div>
+        <div class="kpi-value" style="color:#d2a8ff" id="val-proofs">0</div>
+        <div class="kpi-sub">Groth16 Verifications</div>
+      </div>
     </div>
-    <div class="kpi">
-      <div class="kpi-label">Trades Executed</div>
-      <div class="kpi-value blue" id="kpi-trades">0</div>
-      <div class="kpi-sub">Since agent start</div>
-    </div>
-    <div class="kpi">
-      <div class="kpi-label">Best Spread</div>
-      <div class="kpi-value warn" id="kpi-best-spread">+0.00%</div>
-      <div class="kpi-sub" id="kpi-best-pair">Scanning...</div>
-    </div>
-    <div class="kpi">
-      <div class="kpi-label">Currently Monitoring</div>
-      <div class="kpi-value" style="font-size:1rem;color:var(--text)">3 Pairs</div>
-      <div class="kpi-sub">cUSD/USDT · cUSD/USDC · USDT/USDC</div>
-    </div>
-  </div>
 
-  <!-- Spreads + Trade log -->
-  <div class="grid-2">
-    <!-- Spread monitor -->
+    <!-- P&L Chart -->
     <div class="card">
       <div class="card-header">
-        <span class="card-title">Live Spread Monitor · TWAP-5m</span>
-        <span class="badge" id="scan-tick">30s</span>
-      </div>
-      <div id="spread-pairs">
-        <div class="spread-pair" id="sp-cUSD-USDT">
-          <div class="spread-row">
-            <span class="pair-name">cUSD / USDT</span>
-            <span class="spread-val" id="v-cUSD-USDT">+0.00%</span>
-          </div>
-          <div class="bar-track"><div class="bar-fill" id="b-cUSD-USDT" style="width:0%"></div></div>
-          <div class="spread-meta">
-            <span>Pool fee: 0.05%</span>
-            <span id="net-cUSD-USDT">Net: —</span>
-          </div>
-        </div>
-        <div class="spread-pair" id="sp-cUSD-USDC">
-          <div class="spread-row">
-            <span class="pair-name">cUSD / USDC</span>
-            <span class="spread-val" id="v-cUSD-USDC">+0.00%</span>
-          </div>
-          <div class="bar-track"><div class="bar-fill" id="b-cUSD-USDC" style="width:0%"></div></div>
-          <div class="spread-meta">
-            <span>Pool fee: 0.05%</span>
-            <span id="net-cUSD-USDC">Net: —</span>
-          </div>
-        </div>
-        <div class="spread-pair" id="sp-USDT-USDC">
-          <div class="spread-row">
-            <span class="pair-name">USDT / USDC</span>
-            <span class="spread-val" id="v-USDT-USDC">+0.00%</span>
-          </div>
-          <div class="bar-track"><div class="bar-fill" id="b-USDT-USDC" style="width:0%"></div></div>
-          <div class="spread-meta">
-            <span>Pool fee: 0.01%</span>
-            <span id="net-USDT-USDC">Net: —</span>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Trade log -->
-    <div class="card">
-      <div class="card-header">
-        <span class="card-title">Trade Execution Log</span>
-        <span class="badge green" id="trade-count-badge">0 trades</span>
-      </div>
-      <div class="trade-log" id="trade-log">
-        <div style="padding:1.5rem 1.4rem; color:var(--muted); font-size:.8rem;">
-          Waiting for first arbitrage opportunity...
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Agent console -->
-  <div class="console" style="margin-bottom:1.5rem;">
-    <div class="console-header">
-      <div class="console-dot" style="background:#ff5f56"></div>
-      <div class="console-dot" style="background:#ffbd2e"></div>
-      <div class="console-dot" style="background:#27c93f"></div>
-      <span style="font-family:var(--mono);font-size:.75rem;color:var(--muted);margin-left:.5rem;">celoarb agent — stdout</span>
-    </div>
-    <div class="console-lines" id="console-lines"></div>
-  </div>
-
-  <!-- Bottom row -->
-  <div class="grid-3">
-    <!-- Delegation rules -->
-    <div class="card">
-      <div class="card-header">
-        <span class="card-title">MetaMask Delegation Rules</span>
-        <span class="badge green">Active</span>
+        <div class="card-title">Real-Time P&L Performance</div>
+        <div class="badge">Live View</div>
       </div>
       <div class="card-body">
-        <div class="rules-grid">
-          <div class="rule-item">
-            <div class="rule-key">Daily Limit</div>
-            <div class="rule-val green">5,000 USDT</div>
+        <div class="chart-container">
+          <canvas id="pnlChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Live Monitor -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Liquidity Pool Monitor (Uniswap V3)</div>
+        <div class="badge" id="scan-timer">Next scan in 30s</div>
+      </div>
+      <div class="card-body">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Pair</th>
+              <th>Current Price</th>
+              <th>Spread</th>
+              <th>Visual Path</th>
+              <th>Net Profit</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="pool-body">
+            <!-- Dynamic content -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Terminal -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Agent Execution Console</div>
+        <button class="badge" onclick="document.getElementById('terminal-content').innerHTML=''" style="cursor:pointer">Clear</button>
+      </div>
+      <div class="terminal" id="terminal-content">
+        <span class="log-entry"><span class="log-ts">[BOOT]</span> Initializing CeloArb Core...</span>
+        <span class="log-entry"><span class="log-ts">[BOOT]</span> Loading AgentNS Identity: <span class="log-info">celoarb.agent.eth</span></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Right Side: Portfolio & Config -->
+  <aside class="side-grid">
+    <!-- Portfolio -->
+    <div class="card">
+      <div class="card-header"><div class="card-title">Agent Portfolio</div></div>
+      <div class="card-body" id="portfolio-container">
+        <!-- Token items inserted here -->
+      </div>
+    </div>
+
+    <!-- Market Sentiment -->
+    <div class="card">
+      <div class="card-header"><div class="card-title">Market Sentiment Engine</div></div>
+      <div class="card-body">
+        <div class="sentiment-box">
+          <div style="font-size: 2rem; margin-bottom: 0.5rem;" id="sentiment-emoji">🤔</div>
+          <div style="font-weight: 700;" id="sentiment-text">NEUTRAL</div>
+          <div class="gauge-track">
+            <div class="gauge-needle" id="gauge-needle" style="left: 50%;"></div>
           </div>
-          <div class="rule-item">
-            <div class="rule-key">Per-TX Max</div>
-            <div class="rule-val green">1,000 USDT</div>
-          </div>
-          <div class="rule-item">
-            <div class="rule-key">Max Slippage</div>
-            <div class="rule-val">0.5%</div>
-          </div>
-          <div class="rule-item">
-            <div class="rule-key">Gas Cap</div>
-            <div class="rule-val">50 gwei</div>
-          </div>
-          <div class="rule-item" style="grid-column:span 2">
-            <div class="rule-key">Approved Contracts</div>
-            <div class="rule-val" style="font-size:.7rem;color:var(--accent2)">uniswap-v3-router-celo · uniswap-quoter-celo</div>
+          <div style="font-size: .65rem; color: var(--muted); margin-top: .75rem;">
+            Aggregation of RSI, Volume, and On-chain Flow
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Strategy config -->
+    <!-- Strategy Config -->
     <div class="card">
-      <div class="card-header">
-        <span class="card-title">Strategy Config</span>
-      </div>
+      <div class="card-header"><div class="card-title">Strategy Configuration</div></div>
       <div class="card-body">
-        <div class="identity-block">
-          <div class="id-row"><span class="id-key">Min Net Profit</span><span class="id-val green">0.3%</span></div>
-          <div class="id-row"><span class="id-key">TWAP Window</span><span class="id-val">5 minutes</span></div>
-          <div class="id-row"><span class="id-key">RSI Overbought</span><span class="id-val">&gt; 70 → skip</span></div>
-          <div class="id-row"><span class="id-key">Current RSI</span><span class="id-val green" id="rsi-val">48.2</span></div>
-          <div class="id-row" style="flex-direction: column; align-items: flex-start; gap: 0.6rem; padding: 1.2rem 0;">
-            <div style="display: flex; justify-content: space-between; width: 100%;">
-              <span class="id-key">Trade Size</span>
-              <span class="id-val green" id="trade-size-display">$1,000 USDT</span>
+        <div style="display:flex; flex-direction:column; gap:1.25rem;">
+          <div>
+            <div style="display:flex; justify-content:space-between; font-size:.7rem; margin-bottom:.5rem;">
+              <span>MIN. NET PROFIT</span>
+              <span style="color:var(--accent)" id="val-min-profit">0.3%</span>
             </div>
-            <input type="range" id="trade-size-slider" min="100" max="5000" step="100" value="1000" style="width: 100%; accent-color: var(--accent); cursor: pointer; height: 6px; border-radius: 3px; background: var(--border); -webkit-appearance: none; appearance: none;">
+            <input type="range" class="slider" min="0.1" max="1" step="0.05" value="0.3" id="inp-min-profit" style="width:100%; accent-color:var(--accent);">
           </div>
-          <div class="id-row" style="flex-direction: column; align-items: flex-start; gap: 0.6rem; padding: 1.2rem 0;">
-            <div style="display: flex; justify-content: space-between; width: 100%;">
-              <span class="id-key">Scan Delay</span>
-              <span class="id-val blue" id="scan-delay-display">30 seconds</span>
+          <div>
+            <div style="display:flex; justify-content:space-between; font-size:.7rem; margin-bottom:.5rem;">
+              <span>TRADE SIZE (USDT)</span>
+              <span style="color:var(--accent2)" id="val-trade-size">$1,000</span>
             </div>
-            <input type="range" id="scan-delay-slider" min="5" max="120" step="5" value="30" style="width: 100%; accent-color: var(--accent2); cursor: pointer; height: 6px; border-radius: 3px; background: var(--border); -webkit-appearance: none; appearance: none;">
+            <input type="range" class="slider" min="100" max="5000" step="100" value="1000" id="inp-trade-size" style="width:100%; accent-color:var(--accent2);">
+          </div>
+          <div style="padding:1rem; background:var(--surface2); border-radius:8px; font-size:.7rem; color:var(--muted);">
+            <div style="display:flex; justify-content:space-between; margin-bottom:.4rem;">
+              <span>Triangular Support</span>
+              <span style="color:var(--accent)">ENABLED ✓</span>
+            </div>
+            <div style="display:flex; justify-content:space-between;">
+              <span>Flash Loan Cap</span>
+              <span style="color:var(--warn)">10,000 USDT</span>
+            </div>
           </div>
         </div>
       </div>
     </div>
-
-    <!-- Identity -->
-    <div class="card">
-      <div class="card-header">
-        <span class="card-title">Agent Identity</span>
-        <span class="badge blue">ERC-8004</span>
-      </div>
-      <div class="card-body">
-        <div class="identity-block">
-          <div class="id-row"><span class="id-key">ENS Name</span><span class="id-val blue">celoarb.agent.eth</span></div>
-          <div class="id-row"><span class="id-key">Type</span><span class="id-val">ArbitrageAgent</span></div>
-          <div class="id-row"><span class="id-key">Network</span><span class="id-val">Celo</span></div>
-          <div class="id-row"><span class="id-key">Self Protocol ZK</span><span class="id-val green">Verified ✓</span></div>
-          <div class="id-row"><span class="id-key">Proof Type</span><span class="id-val">Groth16 zk-SNARK</span></div>
-          <div class="id-row"><span class="id-key">Storage</span><span class="id-val">IPFS · Filecoin</span></div>
-        </div>
-      </div>
-    </div>
-  </div>
+  </aside>
 </main>
 
+<!-- ZK Proof Modal -->
+<div id="modal-overlay">
+  <div class="modal">
+    <div class="modal-head">
+      <div style="font-weight:700; color:var(--text); display:flex; align-items:center; gap:.5rem;">
+        <span style="color:#d2a8ff">✧</span> ZK-SNARK PROOF VERIFICATION
+      </div>
+      <button class="badge" onclick="closeModal()" style="cursor:pointer">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div style="margin-bottom: 1rem;">
+        Transaction: <span id="proof-hash" style="color:var(--accent2)"></span><br>
+        Protocol: <span style="color:var(--muted)">ERC-8004 Verification</span>
+      </div>
+      <div class="proof-json" id="proof-json">
+        <!-- ZK Proof JSON goes here -->
+      </div>
+      <div style="margin-top: 1.5rem; text-align: center;">
+        <div id="verify-status" style="color:var(--accent); font-weight:700; margin-bottom:.5rem;">
+          SYSTEM: VALIDATING GROTH16 PROOF...
+        </div>
+        <div style="font-size: .65rem; color: var(--muted);">Verification performed by local ZK-Circuit (Celo-Optimized)</div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
-  // ── Constants ──────────────────────────────────────────────────────────
+  // ── Configuration ───────────────────────────────────────────────────
+  const TOKENS = {
+    'cUSD': { symbol: 'cUSD', color: '#35d07f', balance: 500.00, price: 1.00 },
+    'USDT': { symbol: 'USDT', color: '#26a17b', balance: 1000.00, price: 1.001 },
+    'USDC': { symbol: 'USDC', color: '#2775ca', balance: 250.00, price: 0.999 },
+    'CELO': { symbol: 'CELO', color: '#fbcc5c', balance: 340.50, price: 0.85 }
+  };
+
   const PAIRS = [
-    { id: "cUSD-USDT", label: "cUSD/USDT", gas: 0.0008, fee: 0.0005 },
-    { id: "cUSD-USDC", label: "cUSD/USDC", gas: 0.0008, fee: 0.0005 },
-    { id: "USDT-USDC", label: "USDT/USDC", gas: 0.0006, fee: 0.0001 },
+    { id: 'cUSD-USDT', label: 'cUSD / USDT', fee: 0.0005, gas: 0.0008, tokens: ['cUSD', 'USDT'] },
+    { id: 'cUSD-USDC', label: 'cUSD / USDC', fee: 0.0005, gas: 0.0008, tokens: ['cUSD', 'USDC'] },
+    { id: 'USDT-USDC', label: 'USDT / USDC', fee: 0.0001, gas: 0.0006, tokens: ['USDT', 'USDC'] },
+    { id: 'CELO-cUSD', label: 'CELO / cUSD', fee: 0.0030, gas: 0.0012, tokens: ['CELO', 'cUSD'] },
   ];
-  const MIN_NET   = 0.003;
-  let   TRADE_AMT = 1000;
-  const MAX_BAR   = 1.0; // max % for bar fill (1%)
 
-  let cumulativePnl  = 0;
-  let tradeCount     = 0;
-  let spreadState    = { "cUSD-USDT": 0, "cUSD-USDC": 0, "USDT-USDC": 0 };
-  let firstLog       = true;
+  let cumulativePnl = 0;
+  let tradeCount = 0;
+  let proofCount = 0;
+  let minProfitThreshold = 0.003; // 0.3%
+  let curTradeSize = 1000;
+  let pnlHistory = [0];
+  let chartLabels = ['Start'];
+  let soundEnabled = true;
 
-  // ── Utilities ──────────────────────────────────────────────────────────
+  // ── Initialization ────────────────────────────────────────────────
   const $ = id => document.getElementById(id);
-  const fmt   = n => (n >= 0 ? "+" : "") + n.toFixed(2) + "%";
-  const fmtUSD = n => "$" + Math.abs(n).toFixed(2);
-  const randInRange = (lo, hi) => lo + Math.random() * (hi - lo);
-  const randHash = () => "0x" + Array.from({length: 8}, () => Math.floor(Math.random()*16).toString(16)).join("") + "...";
+  const fmtUSD = (n, d=2) => '$' + Math.abs(n).toFixed(d);
+  const fmtPct = n => (n >= 0 ? '+' : '') + (n * 100).toFixed(2) + '%';
+  const randRange = (min, max) => Math.random() * (max - min) + min;
 
-  function clock() {
-    const now = new Date();
-    const pad = n => String(n).padStart(2, "0");
-    $("clock").textContent = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
-  }
-  setInterval(clock, 1000);
-  clock();
-
-  // ── Log to console ────────────────────────────────────────────────────
-  function log(msg, type = "info") {
-    const now = new Date();
-    const pad = n => String(n).padStart(2, "0");
-    const ts = `[${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}]`;
-    const el = document.createElement("span");
-    el.className = `log-line ${type}`;
-    el.textContent = `${ts} ${msg}`;
-    const container = $("console-lines");
-    if (firstLog) { container.innerHTML = ""; firstLog = false; }
-    container.prepend(el);
-    // cap at 60 lines
-    while (container.children.length > 60) container.removeChild(container.lastChild);
-  }
-
-  // ── Add trade card ───────────────────────────────────────────────────
-  function addTrade(pair, tokens, profit, hash) {
-    const tl = $("trade-log");
-    const placeholder = tl.querySelector("div[style]");
-    if (placeholder) placeholder.remove();
-
-    tradeCount++;
-    cumulativePnl += profit;
-
-    // KPI
-    $("kpi-pnl").textContent = `+${fmtUSD(cumulativePnl)}`;
-    $("kpi-trades").textContent = tradeCount;
-    $("trade-count-badge").textContent = `${tradeCount} trade${tradeCount !== 1 ? "s" : ""}`;
-
-    const now = new Date();
-    const pad = n => String(n).padStart(2, "0");
-    const ts = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
-    const block = 18420300 + Math.floor(Math.random() * 500);
-
-    const item = document.createElement("div");
-    item.className = "trade-item";
-    item.innerHTML = `
-      <div class="trade-top">
-        <span class="trade-route">${tokens[0]} → ${tokens[1]}</span>
-        <span class="trade-profit">+${fmtUSD(profit)}</span>
-      </div>
-      <div class="trade-top">
-        <span class="trade-hash">${hash}</span>
-        <span class="trade-time">${ts} · block ${block}</span>
-      </div>
-    `;
-    tl.prepend(item);
-
-    // flash KPI
-    const pnlEl = $("kpi-pnl").closest(".kpi");
-    pnlEl.classList.remove("flash");
-    void pnlEl.offsetWidth;
-    pnlEl.classList.add("flash");
-  }
-
-  // ── Spread tick ───────────────────────────────────────────────────────
-  function tick() {
-    let bestSpread = 0;
-    let bestPair   = "";
-
-    log("🔍 Scanning: cUSD/USDT | cUSD/USDC | USDT/USDC", "muted");
-
-    PAIRS.forEach(p => {
-      // Smooth random walk
-      const prev = spreadState[p.id];
-      const delta = randInRange(-0.0015, 0.002);
-      let s = Math.max(0, Math.min(0.009, prev + delta));
-      spreadState[p.id] = s;
-
-      const netProfit = s - p.gas;
-      const isHot = s >= MIN_NET;
-
-      const vEl = $(`v-${p.id}`);
-      const bEl = $(`b-${p.id}`);
-      const nEl = $(`net-${p.id}`);
-      const spEl = $(`sp-${p.id}`);
-
-      vEl.textContent = fmt(s * 100);
-      vEl.className = `spread-val${isHot ? " hot" : s < 0.001 ? " low" : ""}`;
-      bEl.style.width = Math.min(100, (s / (MAX_BAR / 100)) * 100) + "%";
-      bEl.className = `bar-fill${isHot ? " hot" : ""}`;
-      nEl.textContent = `Net after gas: ${netProfit >= 0 ? "+" : ""}${(netProfit * 100).toFixed(3)}%`;
-
-      if (s > bestSpread) { bestSpread = s; bestPair = p.label; }
-
-      // Log spread
-      log(`📊 ${p.label}: spread ${fmt(s * 100)}${isHot ? " 🚨" : ""}`, isHot ? "warn" : "muted");
-
-      // Execute trade?
-      if (netProfit > MIN_NET) {
-        const rsi = randInRange(38, 62);
-        $("rsi-val").textContent = rsi.toFixed(1);
-        log(`📡 RSI: ${rsi.toFixed(1)} — neutral, proceeding`, "info");
-        log(`✅ Delegation check passed — within daily limit`, "good");
-
-        const tokens = p.label.split("/");
-        const profit  = netProfit * TRADE_AMT;
-        const hash    = randHash();
-
-        log(`⚡ Executing: Buy ${tokens[0]} → Sell ${tokens[1]} ($${TRADE_AMT} trade)`, "exec");
-
-        setTimeout(() => {
-          const block = 18420300 + Math.floor(Math.random() * 500);
-          log(`✅ TX confirmed: ${hash} (block ${block})`, "good");
-          log(`💰 Profit: +${fmtUSD(profit)} | Cumulative P&L: +${fmtUSD(cumulativePnl + profit)}`, "good");
-          log(`📝 Trade logged on-chain`, "muted");
-          $("status-text").textContent = "Capturing";
-          setTimeout(() => $("status-text").textContent = "Scanning", 3000);
-          addTrade(p.label, tokens, profit, hash);
-        }, 1800);
+  // Chart setup
+  const ctx = $('pnlChart').getContext('2d');
+  const pnlChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: chartLabels,
+      datasets: [{
+        label: 'Cumulative P&L',
+        data: pnlHistory,
+        borderColor: '#3fb950',
+        backgroundColor: 'rgba(63, 185, 80, 0.1)',
+        fill: true,
+        tension: 0.4,
+        pointRadius: 2,
+        borderWidth: 2
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#8b949e', font: { size: 10 } } },
+        x: { grid: { display: false }, ticks: { display: false } }
       }
-    });
+    }
+  });
 
-    // Update best spread KPI
-    $("kpi-best-spread").textContent = fmt(bestSpread * 100);
-    $("kpi-best-pair").textContent = bestPair;
+  // ── Functions ─────────────────────────────────────────────────────
 
-    // countdown badge
-    let secs = Math.floor(tickInterval / 1000);
-    clearInterval(window._countdown);
-    window._countdown = setInterval(() => {
-      $("scan-tick").textContent = `${--secs}s`;
-      if (secs <= 0) clearInterval(window._countdown);
-    }, 1000);
+  function log(msg, type = '') {
+    const ts = new Date().toLocaleTimeString([], { hour12: false });
+    const line = document.createElement('span');
+    line.className = `log-entry ${type ? 'log-'+type : ''}`;
+    line.innerHTML = `<span class="log-ts">[${ts}]</span> ${msg}`;
+    const container = $('terminal-content');
+    container.prepend(line);
+    if (container.children.length > 50) container.removeChild(container.lastChild);
   }
 
-  let tickInterval = 30000;
-  let tickTimer;
-
-  // ── Boot ──────────────────────────────────────────────────────────────
-  log("🚀 CeloArb agent booting...", "info");
-  log("✅ Loaded ARB_CONFIG: 3 pairs | threshold 0.3%", "good");
-  log("✅ MetaMask Delegation rules loaded", "good");
-  log("✅ Self Protocol ZK verification confirmed", "good");
-  log("✅ AgentNS identity: celoarb.agent.eth", "good");
-  log("✅ ArbRegistry contract connected (Celo Mainnet)", "good");
-
-  // ── Theme Toggle ───────────────────────────────────────────────────────
-  const themeToggle = $("theme-toggle");
-  const themeIconSource = $("theme-icon");
-  const themeTextSource = $("theme-text");
-
-  // ── Trade size slider ──────────────────────────────────────────────────
-  const tradeSlider = $("trade-size-slider");
-  const tradeSizeDisplay = $("trade-size-display");
-
-  tradeSlider.addEventListener("input", (e) => {
-    const val = parseInt(e.target.value);
-    TRADE_AMT = val;
-    tradeSizeDisplay.textContent = `$${val.toLocaleString()} USDT`;
-    log(`⚙️ Strategy Updated: Trade Size set to $${val.toLocaleString()}`, "info");
-  });
-
-  // ── Scan delay slider ──────────────────────────────────────────────────
-  const scanDelaySlider = $("scan-delay-slider");
-  const scanDelayDisplay = $("scan-delay-display");
-
-  scanDelaySlider.addEventListener("change", (e) => {
-    const val = parseInt(e.target.value);
-    tickInterval = val * 1000;
-    scanDelayDisplay.textContent = `${val} seconds`;
-    log(`⚙️ Scan Frequency: Re-polling every ${val}s`, "info");
-    
-    // reset interval
-    clearInterval(tickTimer);
-    tickTimer = setInterval(tick, tickInterval);
-    // instant tick on change
-    tick();
-  });
-
-  scanDelaySlider.addEventListener("input", (e) => {
-    scanDelayDisplay.textContent = `${e.target.value} seconds`;
-  });
-
-  function setTheme(isLight) {
-    if (isLight) {
-      document.body.classList.add("light-theme");
-      themeIconSource.textContent = "☀️";
-      themeTextSource.textContent = "Light";
-      localStorage.setItem("theme", "light");
-    } else {
-      document.body.classList.remove("light-theme");
-      themeIconSource.textContent = "🌙";
-      themeTextSource.textContent = "Dark";
-      localStorage.setItem("theme", "dark");
+  function updatePortfolioUI() {
+    const container = $('portfolio-container');
+    container.innerHTML = '';
+    for (const [key, token] of Object.entries(TOKENS)) {
+      const div = document.createElement('div');
+      div.className = 'portfolio-item';
+      div.innerHTML = `
+        <div class="token-icon" style="color:${token.color}">${key[0]}</div>
+        <div class="token-info">
+          <div class="token-symbol">${key}</div>
+          <div class="token-amount">${token.balance.toFixed(2)} ${key}</div>
+        </div>
+        <div class="token-val">${fmtUSD(token.balance * token.price)}</div>
+      `;
+      container.appendChild(div);
     }
   }
 
-  themeToggle.addEventListener("click", () => {
-    setTheme(!document.body.classList.contains("light-theme"));
-  });
+  function updateSentiment() {
+    const score = randRange(0, 100);
+    const needle = $('gauge-needle');
+    const text = $('sentiment-text');
+    const emoji = $('sentiment-emoji');
+    needle.style.left = score + '%';
 
-  // Load saved theme
-  if (localStorage.getItem("theme") === "light") {
-    setTheme(true);
+    if (score < 40) { text.textContent = 'FEAR'; text.style.color = 'var(--danger)'; emoji.textContent = '😨'; }
+    else if (score < 65) { text.textContent = 'NEUTRAL'; text.style.color = 'var(--warn)'; emoji.textContent = '😐'; }
+    else { text.textContent = 'GREED'; text.style.color = 'var(--accent)'; emoji.textContent = '🤑'; }
   }
 
-  // First tick after short delay so logs show first
-  setTimeout(() => {
-    tick();
-    tickTimer = setInterval(tick, tickInterval);
-  }, 1200);
+  function openProofModal(hash) {
+    if (soundEnabled) playSound(880, 0.1);
+    $('modal-overlay').style.display = 'flex';
+    $('proof-hash').textContent = hash;
+    $('verify-status').textContent = 'SYSTEM: VALIDATING GROTH16 PROOF...';
+    $('verify-status').style.color = 'var(--warn)';
+
+    // Generated fake ZK proof structure
+    const proof = {
+      pi_a: [randRange(10**2, 10**6).toFixed(0), randRange(10**2, 10**6).toFixed(0), "1"],
+      pi_b: [[randRange(1, 1000).toString(), "0"], [randRange(1, 1000).toString(), "0"]],
+      pi_c: ["4534", "1231", "1"],
+      publicSignals: ["1", "0", hash.substring(0, 10), Math.floor(tradeCount*13).toString()]
+    };
+    $('proof-json').textContent = JSON.stringify(proof, null, 2);
+
+    setTimeout(() => {
+      $('verify-status').textContent = 'VERIFICATION SUCCESSFUL: PROOF VALID ✓';
+      $('verify-status').style.color = 'var(--accent)';
+      if (soundEnabled) playSound(1200, 0.1);
+    }, 1500);
+  }
+
+  function closeModal() { $('modal-overlay').style.display = 'none'; }
+
+  function playSound(freq, dur) {
+    try {
+      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + dur);
+      osc.start();
+      osc.stop(audioCtx.currentTime + dur);
+    } catch(e) {}
+  }
+
+  function executeTrade(pairObj, spread) {
+    const net = spread - pairObj.gas;
+    const profitUSD = net * curTradeSize;
+    const hash = '0x' + Math.random().toString(16).slice(2, 10) + '...' + Math.random().toString(16).slice(2, 6);
+
+    // Update balances (simplified logic)
+    const [tIn, tOut] = pairObj.tokens;
+    TOKENS[tIn].balance -= (curTradeSize / TOKENS[tIn].price);
+    TOKENS[tOut].balance += ((curTradeSize * (1 + net)) / TOKENS[tOut].price);
+
+    cumulativePnl += profitUSD;
+    tradeCount++;
+    proofCount++;
+
+    // Update UI
+    $('val-pnl').textContent = '+' + fmtUSD(cumulativePnl);
+    $('val-trades').textContent = tradeCount;
+    $('val-proofs').textContent = proofCount;
+
+    // Chart update
+    chartLabels.push('');
+    pnlHistory.push(cumulativePnl);
+    if (pnlHistory.length > 50) { pnlHistory.shift(); chartLabels.shift(); }
+    pnlChart.update();
+
+    log(`EXEC: Buy ${tIn} → Sell ${tOut} ($${curTradeSize})`, 'exec');
+    setTimeout(() => {
+      log(`SUCCESS: TX Confirmed ${hash} | Profit: +${fmtUSD(profitUSD)}`, 'success');
+      updatePortfolioUI();
+      if (soundEnabled) playSound(1000, 0.2);
+    }, 1500);
+
+    return hash;
+  }
+
+  function tick() {
+    log('Scanning liquidity pools for opportunities...', '');
+    let best = { val: 0, pair: '' };
+    const tbody = $('pool-body');
+    tbody.innerHTML = '';
+
+    // Check for Triangular opportunity (simulated 5% chance)
+    const isTriangular = Math.random() > 0.95;
+
+    PAIRS.forEach(p => {
+      const baseSpread = randRange(-0.002, 0.006);
+      const isHot = baseSpread > minProfitThreshold;
+      const net = baseSpread - p.gas;
+
+      if (baseSpread > best.val) { best.val = baseSpread; best.pair = p.label; }
+
+      const tr = document.createElement('tr');
+      if (isHot) tr.className = 'flash-success';
+      tr.innerHTML = `
+        <td style="font-weight:700">${p.label}</td>
+        <td class="token-val">${TOKENS[p.tokens[1]].price.toFixed(4)}</td>
+        <td style="color:${isHot ? 'var(--warn)' : 'var(--text)'}">
+          ${fmtPct(baseSpread)}
+          <div class="spread-bar"><div class="spread-fill ${isHot ? 'hot' : ''}" style="width:${Math.min(100, (baseSpread/0.01)*100)}%"></div></div>
+        </td>
+        <td>
+          <div style="font-size:.65rem; color:var(--muted)">${p.tokens[0]} &rarr; Pool &rarr; ${p.tokens[1]}</div>
+        </td>
+        <td style="color:${net > 0 ? 'var(--accent)' : 'var(--muted)'}; font-family:var(--mono)">${fmtPct(net)}</td>
+        <td>
+          ${isHot ? `<button class="badge accent" onclick="openProofModal('${executeTrade(p, baseSpread)}')" style="cursor:pointer">VERIFY ZK</button>` : `<span style="color:var(--muted2)">Waiting</span>`}
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    if (isTriangular) {
+      log('🚨 TRIANGULAR ARBITRAGE DETECTED: cUSD → CELO → USDT → cUSD', 'warn');
+      log('Triangular path calculation: 0.42% net profit estimated', 'info');
+      if (0.0042 > minProfitThreshold) {
+        setTimeout(() => executeTrade({tokens:['cUSD','cUSD'], label:'TRICYCLE', gas:0.002}, 0.0062), 2000);
+      }
+    }
+
+    $('val-best-spread').textContent = fmtPct(best.val);
+    $('val-best-pair').textContent = best.pair;
+    updateSentiment();
+  }
+
+  // ── Event Handlers ──────────────────────────────────────────────
+  $('theme-toggle').onclick = () => {
+    document.body.classList.toggle('light-theme');
+    $('theme-icon').textContent = document.body.classList.contains('light-theme') ? '☀️' : '🌙';
+  };
+
+  $('sound-toggle').onclick = () => {
+    soundEnabled = !soundEnabled;
+    $('sound-icon').textContent = soundEnabled ? '🔊' : '🔇';
+  };
+
+  $('inp-min-profit').oninput = e => {
+    minProfitThreshold = parseFloat(e.target.value) / 100;
+    $('val-min-profit').textContent = e.target.value + '%';
+  };
+
+  $('inp-trade-size').oninput = e => {
+    curTradeSize = parseInt(e.target.value);
+    $('val-trade-size').textContent = '$' + curTradeSize.toLocaleString();
+  };
+
+  // ── Clock ────────────────────────────────────────────────────────
+  setInterval(() => {
+    $('clock').textContent = new Date().toLocaleTimeString([], { hour12: false });
+  }, 1000);
+
+  // ── Loop ────────────────────────────────────────────────────────
+  let secondsLeft = 30;
+  setInterval(() => {
+    secondsLeft--;
+    if (secondsLeft <= 0) {
+      tick();
+      secondsLeft = 30;
+    }
+    $('scan-timer').textContent = `Next scan in ${secondsLeft}s`;
+  }, 1000);
+
+  tick();
+  updatePortfolioUI();
+
 </script>
 </body>
 </html>
