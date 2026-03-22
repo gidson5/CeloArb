@@ -9,6 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.1/ethers.umd.min.js"></script>
   <style>
     :root {
       /* Dark Theme (Default) */
@@ -434,28 +435,63 @@
 
 <script>
   // ── Configuration ───────────────────────────────────────────────────
+  const RPC_URL = "https://forno.celo.org";
+  const QUOTER_ADDR = "0x82825d0554fA07f7FC52Ab63c961F330fdEFa8E8";
+  const QUOTER_ABI = ["function quoteExactInputSingle((address tokenIn, address tokenOut, uint256 amountIn, uint24 fee, uint160 sqrtPriceLimitX96)) public returns (uint256 amountOut, uint160 sqrtPriceX96After, uint32 initializedTicksCrossed, uint256 gasEstimate)"];
+
   const TOKENS = {
-    'cUSD': { symbol: 'cUSD', color: '#35d07f', balance: 500.00, price: 1.00 },
-    'USDT': { symbol: 'USDT', color: '#26a17b', balance: 1000.00, price: 1.001 },
-    'USDC': { symbol: 'USDC', color: '#2775ca', balance: 250.00, price: 0.999 },
-    'CELO': { symbol: 'CELO', color: '#fbcc5c', balance: 340.50, price: 0.85 }
+    'cUSD': { symbol: 'cUSD', address: '0x765DE816845861e75A25fCA122bb6898B8B1282a', decimals: 18, color: '#35d07f', balance: 500.00, price: 1.00 },
+    'USDT': { symbol: 'USDT', address: '0x48065fbBE25f71C9282ddf5e1cD6D6A887483D5e', decimals: 6, color: '#26a17b', balance: 1000.00, price: 1.00 },
+    'USDC': { symbol: 'USDC', address: '0xcebA9300f2b948710d2653dD7B07f33A8B32118C', decimals: 6, color: '#2775ca', balance: 250.00, price: 1.00 },
+    'CELO': { symbol: 'CELO', address: '0x471EcE3750Da237f93B8E339c536989b8978a438', decimals: 18, color: '#fbcc5c', balance: 340.50, price: 0.85 }
   };
 
   const PAIRS = [
-    { id: 'cUSD-USDT', label: 'cUSD / USDT', fee: 0.0005, gas: 0.0008, tokens: ['cUSD', 'USDT'] },
-    { id: 'cUSD-USDC', label: 'cUSD / USDC', fee: 0.0005, gas: 0.0008, tokens: ['cUSD', 'USDC'] },
-    { id: 'USDT-USDC', label: 'USDT / USDC', fee: 0.0001, gas: 0.0006, tokens: ['USDT', 'USDC'] },
-    { id: 'CELO-cUSD', label: 'CELO / cUSD', fee: 0.0030, gas: 0.0012, tokens: ['CELO', 'cUSD'] },
+    { id: 'cUSD-USDT', label: 'cUSD / USDT', fee: 500, gas: 0.0008, tokens: ['cUSD', 'USDT'] },
+    { id: 'cUSD-USDC', label: 'cUSD / USDC', fee: 500, gas: 0.0008, tokens: ['cUSD', 'USDC'] },
+    { id: 'USDT-USDC', label: 'USDT / USDC', fee: 100, gas: 0.0006, tokens: ['USDT', 'USDC'] },
+    { id: 'CELO-cUSD', label: 'CELO / cUSD', fee: 3000, gas: 0.0012, tokens: ['CELO', 'cUSD'] },
   ];
 
   let cumulativePnl = 0;
   let tradeCount = 0;
   let proofCount = 0;
-  let minProfitThreshold = 0.003; // 0.3%
+  let minProfitThreshold = 0.003;
   let curTradeSize = 1000;
   let pnlHistory = [0];
   let chartLabels = ['Start'];
   let soundEnabled = true;
+  let isConnected = false;
+
+  // ── Blockchain Setup ───────────────────────────────────────────────
+  const provider = new ethers.JsonRpcProvider(RPC_URL);
+  const quoter = new ethers.Contract(QUOTER_ADDR, QUOTER_ABI, provider);
+
+  async function getQuote(tokenInKey, tokenOutKey, fee) {
+    try {
+      const tIn = TOKENS[tokenInKey];
+      const tOut = TOKENS[tokenOutKey];
+      const amountIn = ethers.parseUnits("100", tIn.decimals); // check $100 spread
+      
+      const params = {
+        tokenIn: tIn.address,
+        tokenOut: tOut.address,
+        amountIn: amountIn,
+        fee: fee,
+        sqrtPriceLimitX96: 0
+      };
+      
+      const result = await quoter.quoteExactInputSingle.staticCall(params);
+      const amountOut = ethers.formatUnits(result.amountOut, tOut.decimals);
+      
+      // Calculate spread vs oracle (or just 1:1 for stablecoins)
+      const ratio = parseFloat(amountOut) / 100;
+      return ratio - 1; // spread pct
+    } catch (e) {
+      console.warn(`Quote failed for ${tokenInKey}/${tokenOutKey}`, e);
+      return -0.01; // default to negative spread on error
+    }
+  }
 
   // ── Initialization ────────────────────────────────────────────────
   const $ = id => document.getElementById(id);
@@ -608,48 +644,42 @@
     return hash;
   }
 
-  function tick() {
-    log('Scanning liquidity pools for opportunities...', '');
-    let best = { val: 0, pair: '' };
+  async function tick() {
+    if (!isConnected) {
+      try { await provider.getNetwork(); isConnected = true; log("Connected to Celo Mainnet", "success"); } 
+      catch(e) { log("Connection Error: Celo RPC unavailable", "warn"); return; }
+    }
+
+    log('Fetching real-time quotes from Uniswap V3...', '');
+    let best = { val: -1, pair: '' };
     const tbody = $('pool-body');
     tbody.innerHTML = '';
 
-    // Check for Triangular opportunity (simulated 5% chance)
-    const isTriangular = Math.random() > 0.95;
+    for (const p of PAIRS) {
+      const realSpread = await getQuote(p.tokens[0], p.tokens[1], p.fee);
+      const isHot = realSpread > minProfitThreshold;
+      const net = realSpread - p.gas;
 
-    PAIRS.forEach(p => {
-      const baseSpread = randRange(-0.002, 0.006);
-      const isHot = baseSpread > minProfitThreshold;
-      const net = baseSpread - p.gas;
-
-      if (baseSpread > best.val) { best.val = baseSpread; best.pair = p.label; }
+      if (realSpread > best.val) { best.val = realSpread; best.pair = p.label; }
 
       const tr = document.createElement('tr');
       if (isHot) tr.className = 'flash-success';
       tr.innerHTML = `
         <td style="font-weight:700">${p.label}</td>
-        <td class="token-val">${TOKENS[p.tokens[1]].price.toFixed(4)}</td>
+        <td class="token-val">${(1 + realSpread).toFixed(4)}</td>
         <td style="color:${isHot ? 'var(--warn)' : 'var(--text)'}">
-          ${fmtPct(baseSpread)}
-          <div class="spread-bar"><div class="spread-fill ${isHot ? 'hot' : ''}" style="width:${Math.min(100, (baseSpread/0.01)*100)}%"></div></div>
+          ${fmtPct(realSpread)}
+          <div class="spread-bar"><div class="spread-fill ${isHot ? 'hot' : ''}" style="width:${Math.min(100, Math.max(0, realSpread/0.01)*100)}%"></div></div>
         </td>
         <td>
           <div style="font-size:.65rem; color:var(--muted)">${p.tokens[0]} &rarr; Pool &rarr; ${p.tokens[1]}</div>
         </td>
         <td style="color:${net > 0 ? 'var(--accent)' : 'var(--muted)'}; font-family:var(--mono)">${fmtPct(net)}</td>
         <td>
-          ${isHot ? `<button class="badge accent" onclick="openProofModal('${executeTrade(p, baseSpread)}')" style="cursor:pointer">VERIFY ZK</button>` : `<span style="color:var(--muted2)">Waiting</span>`}
+          ${isHot ? `<button class="badge accent" onclick="openProofModal('${executeTrade(p, realSpread)}')" style="cursor:pointer">VERIFY ZK</button>` : `<span style="color:var(--muted2)">Waiting</span>`}
         </td>
       `;
       tbody.appendChild(tr);
-    });
-
-    if (isTriangular) {
-      log('🚨 TRIANGULAR ARBITRAGE DETECTED: cUSD → CELO → USDT → cUSD', 'warn');
-      log('Triangular path calculation: 0.42% net profit estimated', 'info');
-      if (0.0042 > minProfitThreshold) {
-        setTimeout(() => executeTrade({tokens:['cUSD','cUSD'], label:'TRICYCLE', gas:0.002}, 0.0062), 2000);
-      }
     }
 
     $('val-best-spread').textContent = fmtPct(best.val);
