@@ -1,0 +1,7 @@
+{
+  "network": "celo",
+  "chainId": 42220,
+  "arbRegistry": "0x867d9a416E4E097Ec3C34f0b6D15eD7ebaFc7006",
+  "deployer": "0xBfe28369BBFF6D47D52AC33e9F0B633589d23Af3",
+  "deployedAt": "2026-03-22T14:42:37.480Z"
+}
