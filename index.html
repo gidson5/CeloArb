@@ -1056,7 +1056,7 @@
       secondsLeft--;
       if (secondsLeft <= 0) {
         tick();
-        secondsLeft = 30;
+        secondsLeft = 5;
       }
       $('scan-timer').textContent = `Next scan in ${secondsLeft}s`;
     }, 1000);
@@ -1071,7 +1071,7 @@
     fetchMarketPrices().then(() => {
       tick();
       updatePortfolioUI();
-      setInterval(fetchMarketPrices, 300000); // refresh prices every 5 min
+      setInterval(fetchMarketPrices, 30000); // refresh prices every 30s
     });
   </script>
 </body>
