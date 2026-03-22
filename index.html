@@ -536,7 +536,11 @@
         </div>
         AGENT ACTIVE
       </div>
-      <div class="badge blue">Mainnet</div>
+      <a href="https://agent-ns.vercel.app" target="_blank"
+         class="badge blue"
+         style="text-decoration:none; cursor:pointer">
+        ◈ celoarb.agent.eth
+      </a>
       <button id="theme-toggle" class="badge" style="cursor:pointer; background:var(--surface)">
         <span id="theme-icon">🌙</span>
       </button>
@@ -590,7 +594,7 @@
       <div class="card">
         <div class="card-header">
           <div class="card-title">Liquidity Pool Monitor (Uniswap V3)</div>
-          <div class="badge" id="scan-timer">Next scan in 30s</div>
+          <div class="badge" id="scan-timer">Next scan in 3s</div>
         </div>
         <div class="card-body">
           <table class="data-table">
@@ -1048,12 +1052,12 @@
       $('clock').textContent = new Date().toLocaleTimeString([], { hour12: false });
     }, 1000);
 
-    let secondsLeft = 30;
+    let secondsLeft = 3;
     setInterval(() => {
       secondsLeft--;
       if (secondsLeft <= 0) {
         tick();
-        secondsLeft = 30;
+        secondsLeft = 3;
       }
       $('scan-timer').textContent = `Next scan in ${secondsLeft}s`;
     }, 1000);
